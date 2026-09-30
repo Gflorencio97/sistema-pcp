@@ -12,7 +12,7 @@ export default function Layout() {
         
         {/* Rodapé Global */}
         <footer className="border-t border-gray-200/80 bg-white/70 backdrop-blur-xs px-6 py-2.5 text-[11px] text-gray-500 flex flex-col sm:flex-row items-center justify-between gap-1 shrink-0 select-none">
-          <span>© {new Date().getFullYear()} Evoluttion Indústria Mecânica — Sistema de Planejamento e Controle da Produção</span>
+          <span>© {new Date().getFullYear()} Evoluttion Automotive — Sistema de Planejamento e Controle da Produção</span>
           <span>
             Desenvolvido por <strong className="font-semibold text-gray-800">Gabriel Florêncio</strong> • TI Evoluttion
           </span>

@@ -11,6 +11,7 @@ import Calculadora from './pages/Calculadora'
 import Ordens from './pages/Ordens'
 import Maquinas from './pages/Maquinas'
 import Produtos from './pages/Produtos'
+import Ajuda from './pages/Ajuda'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +35,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="ordens" element={<Ordens />} />
             <Route path="maquinas" element={<Maquinas />} />
             <Route path="produtos" element={<Produtos />} />
+            <Route path="ajuda" element={<Ajuda />} />
           </Route>
         </Routes>
       </BrowserRouter>

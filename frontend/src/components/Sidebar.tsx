@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Factory, Settings, Package, Calendar, LayoutDashboard, Calculator, Gauge } from 'lucide-react';
+import { Factory, Settings, Package, Calendar, LayoutDashboard, Calculator, Gauge, BookOpen } from 'lucide-react';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -9,6 +9,7 @@ const navItems = [
   { to: '/ordens', label: 'Ordens de Produção', icon: Factory },
   { to: '/maquinas', label: 'Máquinas', icon: Settings },
   { to: '/produtos', label: 'Produtos', icon: Package },
+  { to: '/ajuda', label: 'Guia & Manual', icon: BookOpen },
 ];
 
 

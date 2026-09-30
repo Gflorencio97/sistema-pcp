@@ -48,8 +48,11 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="border-t border-gray-700 px-5 py-3 text-[10px] text-gray-500">
-        v1.0.0 — PCP Evoluttion
+      <div className="border-t border-gray-800 px-5 py-3.5 text-[11px] text-gray-400">
+        <div className="font-semibold text-gray-200">PCP Evoluttion v1.0.0</div>
+        <div className="text-[10px] text-gray-400 mt-0.5">
+          Desenvolvido por <span className="text-blue-400 font-semibold">Gabriel Florêncio</span>
+        </div>
       </div>
     </aside>
   );

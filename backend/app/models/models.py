@@ -126,3 +126,19 @@ class OrdemProducao(Base):
 
     produto = relationship("Produto", back_populates="ordens")
     maquina = relationship("Maquina", back_populates="ordens")
+
+
+class SetorMOD(Base):
+    """Configuração de Mão de Obra Direta (MOD / Homem) por setor ou operação.
+    Permite balancear a capacidade de horas das máquinas vs disponibilidade de operadores.
+    """
+    __tablename__ = "setores_mod"
+
+    id = Column(Integer, primary_key=True, index=True)
+    operacao_codigo = Column(String(50), unique=True, nullable=False, index=True)
+    setor_nome = Column(String(100), nullable=False)
+    quantidade_operadores = Column(Float, default=1.0, nullable=False, comment="Qtd de operadores no setor")
+    horas_dia_operador = Column(Float, default=8.35, nullable=False, comment="Jornada diária por operador (8.35h padrão)")
+    observacoes = Column(Text, nullable=True)
+    atualizado_em = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+

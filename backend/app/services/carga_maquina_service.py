@@ -2,10 +2,10 @@ from sqlalchemy.orm import Session, joinedload
 from typing import Dict, List, Optional
 from collections import defaultdict
 
-from app.models.models import Maquina, Produto, OrdemProducao, RoteiroProduto, StatusMaquina, StatusOrdem, OPERACOES_FABRICA
+from app.models.models import Maquina, Produto, OrdemProducao, RoteiroProduto, StatusMaquina, StatusOrdem, OPERACOES_FABRICA, SetorMOD
 from app.schemas.carga_maquina import (
     CargaMaquinaItem, CargaSetorItem, CargaMaquinaDashboardResponse,
-    ItemSimulacao
+    ItemSimulacao, SetorMODUpdate
 )
 
 
@@ -15,6 +15,18 @@ def _determinar_status(percentual: float) -> str:
     elif percentual >= 80.0:
         return "atencao"
     return "normal"
+
+
+def _determinar_tipo_gargalo(pct_maquina: float, pct_mod: float) -> str:
+    if pct_maquina > 100.0 and pct_mod > 100.0:
+        return "critico_total"
+    elif pct_maquina > 100.0:
+        return "gargalo_maquina"
+    elif pct_mod > 100.0:
+        return "gargalo_mao_de_obra"
+    elif pct_maquina >= 80.0 or pct_mod >= 80.0:
+        return "atencao"
+    return "equilibrado"
 
 
 def calcular_dashboard_carga_maquina(
@@ -31,11 +43,15 @@ def calcular_dashboard_carga_maquina(
         .all()
     )
 
-    # 2. Mapa de horas ocupadas por máquina
+    # 2. Obter configurações de MOD por setor
+    mod_registros = db.query(SetorMOD).all()
+    mod_map: Dict[str, SetorMOD] = {sm.operacao_codigo: sm for sm in mod_registros}
+
+    # 3. Mapa de horas ocupadas por máquina
     horas_ocupadas_map: Dict[int, float] = defaultdict(float)
     ordens_count_map: Dict[int, int] = defaultdict(int)
 
-    # 3. Processar ordens em andamento e planejadas no sistema
+    # 4. Processar ordens em andamento e planejadas no sistema
     ordens_ativas = (
         db.query(OrdemProducao)
         .options(
@@ -67,11 +83,10 @@ def calcular_dashboard_carga_maquina(
 
         # Se não tiver roteiro distribuído, aloca direto na máquina principal da OP se houver
         if etapas_alocadas == 0 and op.maquina_id:
-            # Estimativa básica se não houver taxa de roteiro (ex: 20 pcs/h)
             horas_ocupadas_map[op.maquina_id] += (qtd_restante / 20.0)
             ordens_count_map[op.maquina_id] += 1
 
-    # 4. Somar pedidos simulados (se houver)
+    # 5. Somar pedidos simulados (se houver)
     if pedidos_simulados:
         for sim in pedidos_simulados:
             roteiro_itens = (
@@ -85,11 +100,13 @@ def calcular_dashboard_carga_maquina(
                     horas_ocupadas_map[item.maquina_id] += horas
                     ordens_count_map[item.maquina_id] += 1
 
-    # 5. Mapeamento de nomes de operações
+    # 6. Mapeamento de nomes de operações
     op_nomes = {op["codigo"]: op["nome"] for op in OPERACOES_FABRICA}
 
-    # 6. Agrupamento por setor / operação
+    # 7. Agrupamento por setor / operação
+    # Chave por operacao_codigo para garantir consistência com a tabela SetorMOD e Excel
     setores_map: Dict[str, List[CargaMaquinaItem]] = defaultdict(list)
+    setor_nomes_map: Dict[str, str] = {}
 
     total_disp = 0.0
     total_ocup = 0.0
@@ -130,16 +147,42 @@ def calcular_dashboard_carga_maquina(
             qtd_ordens=ordens_count_map[maq.id],
         )
 
-        setor_chave = maq.setor or op_nomes.get(maq.operacao_codigo or "", "Outros Setores")
-        setores_map[setor_chave].append(item_maq)
+        # Chave por código da operação
+        op_chave = maq.operacao_codigo or maq.setor or "OUTROS"
+        nome_exibicao = op_nomes.get(maq.operacao_codigo or "", maq.setor or "Outros Setores")
+        setor_nomes_map[op_chave] = nome_exibicao
+        setores_map[op_chave].append(item_maq)
 
-    # 7. Montar lista de setores consolidados
+    # 8. Montar lista de setores consolidados com Mão de Obra Direta (MOD)
     setores_consolidados: List[CargaSetorItem] = []
-    for nome_setor, maqs_setor in setores_map.items():
+    
+    # Ordenar setores pela sequência oficial da fábrica
+    ordem_op = {op["codigo"]: op["ordem"] for op in OPERACOES_FABRICA}
+    chaves_ordenadas = sorted(setores_map.keys(), key=lambda k: ordem_op.get(k, 99))
+
+    for op_chave in chaves_ordenadas:
+        maqs_setor = setores_map[op_chave]
+        nome_setor = setor_nomes_map.get(op_chave, op_chave)
         s_disp = round(sum(m.horas_disponiveis for m in maqs_setor), 2)
         s_ocup = round(sum(m.horas_ocupadas for m in maqs_setor), 2)
         s_pct = round((s_ocup / s_disp) * 100, 1) if s_disp > 0 else 0.0
-        op_cod = maqs_setor[0].operacao_codigo if maqs_setor else None
+        op_cod = maqs_setor[0].operacao_codigo if maqs_setor else op_chave
+
+        # Cálculo de MOD para este setor
+        sm_config = mod_map.get(op_cod)
+        mod_disp = sm_config.quantidade_operadores if sm_config else 1.0
+        h_dia_op = sm_config.horas_dia_operador if sm_config else 8.35
+        
+        # Horas mensais de trabalho de 1 operador (ex: 22 dias * 8.35h = 183.7h)
+        horas_mes_operador = round(dias_uteis * h_dia_op, 2)
+        horas_mod_disp = round(mod_disp * horas_mes_operador, 2)
+        
+        # MOD necessária = Horas ocupadas na máquina / Horas mensais por operador
+        mod_nec = round(s_ocup / horas_mes_operador, 2) if horas_mes_operador > 0 else 0.0
+        mod_saldo = round(mod_disp - mod_nec, 2)
+        pct_mod = round((mod_nec / mod_disp) * 100, 1) if mod_disp > 0 else 0.0
+        status_mod = _determinar_status(pct_mod)
+        tipo_gargalo = _determinar_tipo_gargalo(s_pct, pct_mod)
 
         setores_consolidados.append(
             CargaSetorItem(
@@ -149,15 +192,32 @@ def calcular_dashboard_carga_maquina(
                 horas_ocupadas=s_ocup,
                 percentual_ocupacao=s_pct,
                 status_capacidade=_determinar_status(s_pct),
+                # Campos MOD
+                mod_disponivel=mod_disp,
+                horas_mod_disponivel=horas_mod_disp,
+                mod_necessaria=mod_nec,
+                mod_saldo=mod_saldo,
+                percentual_ocupacao_mod=pct_mod,
+                status_mod=status_mod,
+                tipo_gargalo=tipo_gargalo,
                 maquinas=maqs_setor,
             )
         )
 
     pct_total = round((total_ocup / total_disp) * 100, 1) if total_disp > 0 else 0.0
 
+    # Totais consolidados de MOD da fábrica
+    total_mod_disp = round(sum(s.mod_disponivel for s in setores_consolidados), 2)
+    total_mod_nec = round(sum(s.mod_necessaria for s in setores_consolidados), 2)
+    saldo_mod_tot = round(total_mod_disp - total_mod_nec, 2)
+    pct_mod_tot = round((total_mod_nec / total_mod_disp) * 100, 1) if total_mod_disp > 0 else 0.0
+    horas_mod_disp_tot = round(sum(s.horas_mod_disponivel for s in setores_consolidados), 2)
+    setores_sobrec_mod = sum(1 for s in setores_consolidados if s.status_mod == "sobrecarga")
+
     return CargaMaquinaDashboardResponse(
         dias_uteis=dias_uteis,
         horas_dia_padrao=horas_dia_padrao,
+        horas_dia_operador=8.35,
         horas_disponiveis_total=round(total_disp, 2),
         horas_ocupadas_total=round(total_ocup, 2),
         saldo_horas_total=round(total_disp - total_ocup, 2),
@@ -166,5 +226,41 @@ def calcular_dashboard_carga_maquina(
         maquinas_sobrecarregadas=qtd_sobrecarga,
         maquinas_atencao=qtd_atencao,
         maquinas_normais=qtd_normal,
+        # Indicadores Globais de MOD
+        total_mod_disponivel=total_mod_disp,
+        total_mod_necessaria=total_mod_nec,
+        saldo_mod_total=saldo_mod_tot,
+        percentual_ocupacao_mod_total=pct_mod_tot,
+        horas_mod_disponiveis_total=horas_mod_disp_tot,
+        setores_sobrecarregados_mod=setores_sobrec_mod,
         setores=setores_consolidados,
     )
+
+
+def listar_setores_mod(db: Session) -> List[SetorMOD]:
+    """Retorna a lista de setores com parametrização de mão de obra direta."""
+    return db.query(SetorMOD).order_by(SetorMOD.id).all()
+
+
+def atualizar_setores_mod(db: Session, setores_updates: List[SetorMODUpdate]) -> List[SetorMOD]:
+    """Atualiza a quantidade de operadores e jornadas de cada setor."""
+    op_nomes = {op["codigo"]: op["nome"] for op in OPERACOES_FABRICA}
+    for update in setores_updates:
+        item = db.query(SetorMOD).filter(SetorMOD.operacao_codigo == update.operacao_codigo).first()
+        if item:
+            item.quantidade_operadores = update.quantidade_operadores
+            if update.horas_dia_operador is not None:
+                item.horas_dia_operador = update.horas_dia_operador
+            if update.observacoes is not None:
+                item.observacoes = update.observacoes
+        else:
+            db.add(SetorMOD(
+                operacao_codigo=update.operacao_codigo,
+                setor_nome=op_nomes.get(update.operacao_codigo, update.operacao_codigo),
+                quantidade_operadores=update.quantidade_operadores,
+                horas_dia_operador=update.horas_dia_operador or 8.35,
+                observacoes=update.observacoes,
+            ))
+    db.commit()
+    return db.query(SetorMOD).order_by(SetorMOD.id).all()
+

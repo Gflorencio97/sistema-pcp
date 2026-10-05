@@ -177,12 +177,21 @@ export interface CargaSetorItem {
   horas_ocupadas: number;
   percentual_ocupacao: number;
   status_capacidade: 'normal' | 'atencao' | 'sobrecarga';
+  // Indicadores de Mão de Obra Direta (MOD / Homem x Máquina)
+  mod_disponivel: number;
+  horas_mod_disponivel: number;
+  mod_necessaria: number;
+  mod_saldo: number;
+  percentual_ocupacao_mod: number;
+  status_mod: 'normal' | 'atencao' | 'sobrecarga';
+  tipo_gargalo: 'equilibrado' | 'gargalo_maquina' | 'gargalo_mao_de_obra' | 'critico_total' | 'atencao';
   maquinas: CargaMaquinaItem[];
 }
 
 export interface CargaMaquinaDashboardResponse {
   dias_uteis: number;
   horas_dia_padrao: number;
+  horas_dia_operador: number;
   horas_disponiveis_total: number;
   horas_ocupadas_total: number;
   saldo_horas_total: number;
@@ -191,6 +200,31 @@ export interface CargaMaquinaDashboardResponse {
   maquinas_sobrecarregadas: number;
   maquinas_atencao: number;
   maquinas_normais: number;
+  // Totais consolidados de MOD
+  total_mod_disponivel: number;
+  total_mod_necessaria: number;
+  saldo_mod_total: number;
+  percentual_ocupacao_mod_total: number;
+  horas_mod_disponiveis_total: number;
+  setores_sobrecarregados_mod: number;
   setores: CargaSetorItem[];
 }
+
+export interface SetorMOD {
+  id: number;
+  operacao_codigo: string;
+  setor_nome: string;
+  quantidade_operadores: number;
+  horas_dia_operador: number;
+  observacoes?: string;
+  atualizado_em?: string;
+}
+
+export interface SetorMODUpdate {
+  operacao_codigo: string;
+  quantidade_operadores: number;
+  horas_dia_operador?: number;
+  observacoes?: string;
+}
+
 

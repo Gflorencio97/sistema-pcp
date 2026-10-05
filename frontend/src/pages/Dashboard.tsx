@@ -19,6 +19,7 @@ import {
   Layers,
   Activity,
   Check,
+  Users,
 } from 'lucide-react';
 import { ordemService } from '../services/ordemService';
 import { maquinaService } from '../services/maquinaService';
@@ -343,27 +344,30 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Card 6: Chão de Fábrica */}
+        {/* Card 6: Chão de Fábrica & MOD */}
         <div className="rounded-2xl border border-gray-200/90 bg-white p-4.5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-              Parque Fabril
+              Equipe Fabril (MOD)
             </span>
-            <div className="rounded-lg bg-emerald-100 p-2 text-emerald-700">
-              <Factory className="h-4 w-4" />
+            <div className="rounded-lg bg-purple-100 p-2 text-purple-700">
+              <Users className="h-4 w-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-3xl font-black text-gray-900 tracking-tight">
-              {maquinas.filter((m) => m.status === 'ativa').length}
-            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-3xl font-black text-gray-900 tracking-tight">
+                {carga?.total_mod_disponivel ?? 35}
+              </span>
+              <span className="text-xs font-bold text-gray-500">operadores</span>
+            </div>
             <p className="text-[11px] text-gray-400 mt-1">
-              máquinas ativas • 17,15 h/dia
+              Demanda: <strong className="text-gray-700">{carga?.total_mod_necessaria.toFixed(1) ?? '0.0'} op.</strong> ({carga?.percentual_ocupacao_mod_total.toFixed(1) ?? '0.0'}% ocupação)
             </p>
           </div>
-          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-emerald-700 font-semibold">
-            <Check className="h-3.5 w-3.5" />
-            <span>2 turnos operacionais</span>
+          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-purple-700 font-semibold">
+            <Check className="h-3.5 w-3.5 text-purple-600" />
+            <span>{(carga?.saldo_mod_total ?? 0) >= 0 ? `Folga de +${carga?.saldo_mod_total.toFixed(1)} op.` : `Déficit de ${carga?.saldo_mod_total.toFixed(1)} op.!`}</span>
           </div>
         </div>
 
@@ -382,7 +386,7 @@ export default function Dashboard() {
                   Balanço de Capacidade por Setor Industrial
                 </h2>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Comparativo de horas disponíveis vs. horas alocadas para 22 dias úteis
+                  Comparativo de horas de máquinas vs. mão de obra para 22 dias úteis
                 </p>
               </div>
               <Link
@@ -393,7 +397,7 @@ export default function Dashboard() {
               </Link>
             </div>
 
-            {/* Lista dos 6 Setores com Barras de Progresso */}
+            {/* Lista dos Setores com Barras de Progresso e Indicador de MOD */}
             <div className="space-y-4">
               {carga?.setores.map((setor: CargaSetorItem) => {
                 const pct = setor.percentual_ocupacao;
@@ -406,10 +410,10 @@ export default function Dashboard() {
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-gray-800">{setor.setor_nome}</span>
                         <span className="text-[10px] text-gray-400">
-                          ({setor.maquinas.length} máquina{setor.maquinas.length > 1 ? 's' : ''})
+                          ({setor.maquinas.length} máq. • {setor.mod_disponivel} op.)
                         </span>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <span className="text-[11px] text-gray-500 font-mono">
                           {Math.round(setor.horas_ocupadas)}h / {Math.round(setor.horas_disponiveis)}h
                         </span>
@@ -423,6 +427,16 @@ export default function Dashboard() {
                           }`}
                         >
                           {pct}%
+                        </span>
+                        <span
+                          title={`Mão de Obra Direta: ${setor.mod_necessaria.toFixed(1)} de ${setor.mod_disponivel} operadores`}
+                          className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                            setor.status_mod === 'sobrecarga'
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-purple-50 text-purple-700 border border-purple-200'
+                          }`}
+                        >
+                          MOD: {setor.percentual_ocupacao_mod.toFixed(0)}%
                         </span>
                       </div>
                     </div>

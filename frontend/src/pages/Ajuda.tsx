@@ -488,12 +488,12 @@ export default function Ajuda() {
 
               <div className="rounded-xl border border-gray-200 p-4 space-y-2">
                 <span className="font-bold text-purple-700 uppercase tracking-wider text-[11px] block">
-                  4. Brunimento (`BRUNIMENTO`) • 4 Máquinas
+                  4. Brunimento (`BRUNIMENTO`) • 6 Máquinas
                 </span>
                 <p className="text-gray-500 text-[11px]">
-                  Linha Brunideira 1, Linha Brunideira 2, Linha Brunideira 3, Linha Brunideira 4.
+                  Linha Brunideira 1, Linha Brunideira 2, Linha Brunideira 3, Linha Brunideira 4, Linha Brunideira 5, Linha Brunideira 6.
                 </p>
-                <span className="text-[10px] text-gray-400">Capacidade: 17,15 h/dia cada (1.509,2 h/mês no setor)</span>
+                <span className="text-[10px] text-gray-400">Capacidade: 17,15 h/dia cada (2.263,8 h/mês no setor)</span>
               </div>
 
               <div className="rounded-xl border border-gray-200 p-4 space-y-2">

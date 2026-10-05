@@ -17,7 +17,7 @@ router = APIRouter(prefix="/carga-maquina", tags=["Carga Máquina"])
 @router.get("/resumo", response_model=CargaMaquinaDashboardResponse)
 def obter_resumo_carga_maquina(
     dias_uteis: int = Query(22, ge=1, le=31, description="Dias úteis no mês trabalhado"),
-    horas_dia: float = Query(17.15, ge=1, le=24, description="Horas disponíveis por dia por máquina"),
+    horas_dia: float = Query(8.8, ge=1, le=24, description="Horas disponíveis por dia por máquina (8.8h padrão 1º turno)"),
     db: Session = Depends(get_db),
 ):
     """
@@ -40,7 +40,7 @@ def simular_impacto_carga(
     return carga_maquina_service.calcular_dashboard_carga_maquina(
         db,
         dias_uteis=req.dias_uteis or 22,
-        horas_dia_padrao=req.horas_dia or 17.15,
+        horas_dia_padrao=req.horas_dia or 8.8,
         pedidos_simulados=req.pedidos,
     )
 

@@ -40,7 +40,7 @@ class CargaSetorItem(BaseModel):
 class CargaMaquinaDashboardResponse(BaseModel):
     dias_uteis: int
     horas_dia_padrao: float
-    horas_dia_operador: float = 8.35
+    horas_dia_operador: float = 8.8
     horas_disponiveis_total: float
     horas_ocupadas_total: float
     saldo_horas_total: float
@@ -67,7 +67,7 @@ class ItemSimulacao(BaseModel):
 
 class SimulacaoCargaRequest(BaseModel):
     dias_uteis: Optional[int] = 22
-    horas_dia: Optional[float] = 17.15
+    horas_dia: Optional[float] = 8.8
     pedidos: List[ItemSimulacao]
 
 
@@ -88,7 +88,7 @@ class SetorMODResponse(BaseModel):
 class SetorMODUpdate(BaseModel):
     operacao_codigo: str
     quantidade_operadores: float = Field(..., ge=0)
-    horas_dia_operador: Optional[float] = Field(8.35, ge=1, le=24)
+    horas_dia_operador: Optional[float] = Field(8.8, ge=1, le=24)
     observacoes: Optional[str] = None
 
 

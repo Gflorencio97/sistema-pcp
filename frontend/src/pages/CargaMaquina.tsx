@@ -104,7 +104,7 @@ function BadgeGargalo({ tipo }: { tipo: string }) {
 export default function CargaMaquina() {
   const queryClient = useQueryClient();
   const [diasUteis, setDiasUteis] = useState<number>(22);
-  const [horasDia, setHorasDia] = useState<number>(17.15);
+  const [horasDia, setHorasDia] = useState<number>(8.8);
   const [abaAtiva, setAbaAtiva] = useState<'maquina' | 'homem_maquina'>('homem_maquina');
   const [modalAjusteMODAberto, setModalAjusteMODAberto] = useState(false);
   const [valoresEdicaoMOD, setValoresEdicaoMOD] = useState<Record<string, number>>({});
@@ -142,7 +142,7 @@ export default function CargaMaquina() {
     const updates: SetorMODUpdate[] = Object.entries(valoresEdicaoMOD).map(([opCod, qtd]) => ({
       operacao_codigo: opCod,
       quantidade_operadores: Number(qtd) || 0,
-      horas_dia_operador: 8.35,
+      horas_dia_operador: 8.8,
     }));
     mutationSalvarMOD.mutate(updates);
   };
@@ -161,7 +161,7 @@ export default function CargaMaquina() {
             <h1 className="text-2xl font-bold text-gray-900">Carga Máquina & Homem (MOD)</h1>
           </div>
           <p className="text-sm text-gray-500 mt-1">
-            Balanço de capacidade fabril: equipamentos vs. mão de obra direta ({diasUteis} dias úteis)
+            Balanço de capacidade fabril: 1º Turno (8,8 h/dia) • {diasUteis} dias úteis
           </p>
         </div>
 
@@ -196,14 +196,14 @@ export default function CargaMaquina() {
 
             <div className="flex items-center gap-1.5 px-2">
               <Clock className="h-4 w-4 text-gray-400" />
-              <span className="text-xs font-medium text-gray-600">Turnos Máq.:</span>
+              <span className="text-xs font-medium text-gray-600">Turno:</span>
               <select
                 value={horasDia}
                 onChange={(e) => setHorasDia(Number(e.target.value))}
                 className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
+                <option value={8.8}>1º Turno (8.8h/dia) — Atual</option>
                 <option value={17.15}>2 Turnos (17.15h/dia)</option>
-                <option value={8.8}>1º Turno (8.8h/dia)</option>
                 <option value={24.0}>3 Turnos (24.0h/dia)</option>
               </select>
             </div>
@@ -261,9 +261,9 @@ export default function CargaMaquina() {
                   <strong className="font-bold text-purple-900 block text-sm mb-0.5">
                     Como funciona o cálculo de Mão de Obra Direta (MOD)?
                   </strong>
-                  Cada operador trabalha <strong>8,35 horas/dia</strong> (2º Turno padrão). Em um mês com{' '}
+                  Cada operador trabalha <strong>{horasDia.toFixed(2)} horas/dia</strong> (1º Turno operacional). Em um mês com{' '}
                   <strong>{diasUteis} dias úteis</strong>, a capacidade mensal de cada operador é de{' '}
-                  <strong>{(diasUteis * 8.35).toFixed(1)} horas/mês</strong>. A{' '}
+                  <strong>{(diasUteis * horasDia).toFixed(1)} horas/mês</strong>. A{' '}
                   <strong>MOD Necessária</strong> reflete quantos operadores são necessários para cumprir as horas de máquina programadas.
                 </div>
               </div>
@@ -777,11 +777,11 @@ export default function CargaMaquina() {
             <div className="rounded-xl bg-purple-50 p-3 text-xs text-purple-800 space-y-1">
               <div className="flex justify-between">
                 <span>Jornada Diária Padrão:</span>
-                <strong>8,35 h/dia por operador</strong>
+                <strong>8,80 h/dia por operador (1º Turno)</strong>
               </div>
               <div className="flex justify-between">
                 <span>Capacidade Mensal ({diasUteis} dias úteis):</span>
-                <strong>{(diasUteis * 8.35).toFixed(1)} h/operador</strong>
+                <strong>{(diasUteis * 8.8).toFixed(1)} h/operador</strong>
               </div>
             </div>
 
@@ -789,7 +789,7 @@ export default function CargaMaquina() {
             <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
               {listaMOD.map((s) => {
                 const qtdAtual = valoresEdicaoMOD[s.operacao_codigo] ?? s.quantidade_operadores;
-                const horasMensais = (qtdAtual * diasUteis * 8.35).toFixed(0);
+                const horasMensais = (qtdAtual * diasUteis * 8.8).toFixed(0);
 
                 return (
                   <div

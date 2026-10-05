@@ -32,8 +32,8 @@ export default function Dashboard() {
 
   // Queries
   const { data: carga } = useQuery({
-    queryKey: ['carga-maquina-resumo', 22],
-    queryFn: () => cargaMaquinaService.obterResumo({ dias_uteis: 22 }),
+    queryKey: ['carga-maquina-resumo', 22, 8.8],
+    queryFn: () => cargaMaquinaService.obterResumo({ dias_uteis: 22, horas_dia: 8.8 }),
   });
 
   const { data: ordens = [] } = useQuery({
@@ -357,12 +357,12 @@ export default function Dashboard() {
           <div className="mt-3">
             <div className="flex items-baseline gap-1.5">
               <span className="text-3xl font-black text-gray-900 tracking-tight">
-                {carga?.total_mod_disponivel ?? 35}
+                {carga?.total_mod_disponivel ?? 33}
               </span>
               <span className="text-xs font-bold text-gray-500">operadores</span>
             </div>
             <p className="text-[11px] text-gray-400 mt-1">
-              Demanda: <strong className="text-gray-700">{carga?.total_mod_necessaria.toFixed(1) ?? '0.0'} op.</strong> ({carga?.percentual_ocupacao_mod_total.toFixed(1) ?? '0.0'}% ocupação)
+              1º Turno (8,8 h/dia) • Demanda: <strong className="text-gray-700">{carga?.total_mod_necessaria.toFixed(1) ?? '0.0'} op.</strong> ({carga?.percentual_ocupacao_mod_total.toFixed(1) ?? '0.0'}% ocupação)
             </p>
           </div>
           <div className="mt-3 flex items-center gap-1.5 text-[11px] text-purple-700 font-semibold">
@@ -386,7 +386,7 @@ export default function Dashboard() {
                   Balanço de Capacidade por Setor Industrial
                 </h2>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Comparativo de horas de máquinas vs. mão de obra para 22 dias úteis
+                  Comparativo de horas de máquinas vs. mão de obra para 22 dias úteis (1º Turno • 8,8 h/dia)
                 </p>
               </div>
               <Link

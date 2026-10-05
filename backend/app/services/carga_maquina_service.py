@@ -32,7 +32,7 @@ def _determinar_tipo_gargalo(pct_maquina: float, pct_mod: float) -> str:
 def calcular_dashboard_carga_maquina(
     db: Session,
     dias_uteis: int = 22,
-    horas_dia_padrao: float = 17.15,
+    horas_dia_padrao: float = 8.8,
     pedidos_simulados: Optional[List[ItemSimulacao]] = None,
 ) -> CargaMaquinaDashboardResponse:
     # 1. Obter todas as máquinas ativas
@@ -115,7 +115,8 @@ def calcular_dashboard_carga_maquina(
     qtd_normal = 0
 
     for maq in maquinas:
-        h_dia = maq.horas_por_dia if (maq.horas_por_dia and maq.horas_por_dia > 0) else horas_dia_padrao
+        # Se um turno específico foi selecionado (ex: 8.8h ou 17.15h), aplica a todas as máquinas
+        h_dia = horas_dia_padrao if (horas_dia_padrao and horas_dia_padrao > 0) else (maq.horas_por_dia or 8.8)
         h_disp = round(dias_uteis * h_dia, 2)
         h_ocup = round(horas_ocupadas_map[maq.id], 2)
         saldo = round(h_disp - h_ocup, 2)
@@ -217,7 +218,7 @@ def calcular_dashboard_carga_maquina(
     return CargaMaquinaDashboardResponse(
         dias_uteis=dias_uteis,
         horas_dia_padrao=horas_dia_padrao,
-        horas_dia_operador=8.35,
+        horas_dia_operador=8.8,
         horas_disponiveis_total=round(total_disp, 2),
         horas_ocupadas_total=round(total_ocup, 2),
         saldo_horas_total=round(total_disp - total_ocup, 2),
@@ -258,7 +259,7 @@ def atualizar_setores_mod(db: Session, setores_updates: List[SetorMODUpdate]) ->
                 operacao_codigo=update.operacao_codigo,
                 setor_nome=op_nomes.get(update.operacao_codigo, update.operacao_codigo),
                 quantidade_operadores=update.quantidade_operadores,
-                horas_dia_operador=update.horas_dia_operador or 8.35,
+                horas_dia_operador=update.horas_dia_operador or 8.8,
                 observacoes=update.observacoes,
             ))
     db.commit()

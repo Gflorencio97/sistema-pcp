@@ -42,68 +42,133 @@ function OrdemForm({ initial, onSave, onCancel, error }: {
     observacoes: initial?.observacoes ?? '',
   });
 
+  const handleProdutoChange = (novoId: number) => {
+    const prod = produtos.find(p => p.id === novoId);
+    setForm(f => {
+      let novoNumero = f.numero;
+      if (!novoNumero || novoNumero.includes('.')) {
+        novoNumero = prod ? `${prod.codigo}.0` : '';
+      }
+      return {
+        ...f,
+        produto_id: novoId,
+        numero: novoNumero,
+      };
+    });
+  };
+
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Número da OP *</label>
-          <input value={form.numero} onChange={e => setForm(f => ({ ...f, numero: e.target.value }))}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="OP-2024-001" />
+        <div className="col-span-2">
+          <label className="mb-1 block text-xs font-semibold text-gray-700">Produto Fabricado *</label>
+          <select
+            value={form.produto_id}
+            onChange={e => handleProdutoChange(Number(e.target.value))}
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+          >
+            <option value={0}>Selecione o produto...</option>
+            {produtos.map(p => (
+              <option key={p.id} value={p.id}>
+                {p.codigo} — {p.nome} {p.codigo_fundido ? `(Fundido: ${p.codigo_fundido})` : ''}
+              </option>
+            ))}
+          </select>
         </div>
+
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Prioridade</label>
-          <select value={form.prioridade} onChange={e => setForm(f => ({ ...f, prioridade: e.target.value as any }))}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <label className="mb-1 block text-xs font-semibold text-gray-700">Identificador do Lote / OP *</label>
+          <input
+            value={form.numero}
+            onChange={e => setForm(f => ({ ...f, numero: e.target.value }))}
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Ex: EVCM-7013.0 ou Nº ERP"
+          />
+          <p className="text-[10px] text-gray-400 mt-0.5">
+            Auto-preenchido com código.0 ou digite o nº do ERP.
+          </p>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-gray-700">Prioridade</label>
+          <select
+            value={form.prioridade}
+            onChange={e => setForm(f => ({ ...f, prioridade: e.target.value as any }))}
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
             <option value="baixa">Baixa</option>
             <option value="normal">Normal</option>
             <option value="alta">Alta</option>
             <option value="urgente">Urgente</option>
           </select>
         </div>
+
         <div className="col-span-2">
-          <label className="mb-1 block text-xs font-medium text-gray-600">Produto *</label>
-          <select value={form.produto_id} onChange={e => setForm(f => ({ ...f, produto_id: Number(e.target.value) }))}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value={0}>Selecione...</option>
-            {produtos.map(p => <option key={p.id} value={p.id}>{p.codigo} — {p.nome}</option>)}
-          </select>
-        </div>
-        <div className="col-span-2">
-          <label className="mb-1 block text-xs font-medium text-gray-600">Máquina</label>
-          <select value={form.maquina_id ?? ''} onChange={e => setForm(f => ({ ...f, maquina_id: e.target.value ? Number(e.target.value) : undefined }))}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <label className="mb-1 block text-xs font-medium text-gray-600">Linha / Máquina</label>
+          <select
+            value={form.maquina_id ?? ''}
+            onChange={e => setForm(f => ({ ...f, maquina_id: e.target.value ? Number(e.target.value) : undefined }))}
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
             <option value="">Sem máquina definida</option>
-            {maquinas.map(m => <option key={m.id} value={m.id}>{m.codigo} — {m.nome}</option>)}
+            {maquinas.map(m => (
+              <option key={m.id} value={m.id}>
+                {m.codigo} — {m.nome}
+              </option>
+            ))}
           </select>
         </div>
+
         <div>
           <label className="mb-1 block text-xs font-medium text-gray-600">Qtd. Planejada *</label>
-          <input type="number" min={1} value={form.quantidade_planejada} onChange={e => setForm(f => ({ ...f, quantidade_planejada: Number(e.target.value) }))}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input
+            type="number"
+            min={1}
+            value={form.quantidade_planejada}
+            onChange={e => setForm(f => ({ ...f, quantidade_planejada: Number(e.target.value) }))}
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
         <div />
+
         <div>
           <label className="mb-1 block text-xs font-medium text-gray-600">Início Planejado</label>
-          <input type="datetime-local" value={form.data_inicio_planejada?.slice(0, 16) ?? ''} onChange={e => setForm(f => ({ ...f, data_inicio_planejada: e.target.value }))}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input
+            type="datetime-local"
+            value={form.data_inicio_planejada?.slice(0, 16) ?? ''}
+            onChange={e => setForm(f => ({ ...f, data_inicio_planejada: e.target.value }))}
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
+
         <div>
           <label className="mb-1 block text-xs font-medium text-gray-600">Fim Planejado</label>
-          <input type="datetime-local" value={form.data_fim_planejada?.slice(0, 16) ?? ''} onChange={e => setForm(f => ({ ...f, data_fim_planejada: e.target.value }))}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input
+            type="datetime-local"
+            value={form.data_fim_planejada?.slice(0, 16) ?? ''}
+            onChange={e => setForm(f => ({ ...f, data_fim_planejada: e.target.value }))}
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
       </div>
+
       <div>
         <label className="mb-1 block text-xs font-medium text-gray-600">Observações</label>
-        <textarea value={form.observacoes ?? ''} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))}
-          rows={2} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <textarea
+          value={form.observacoes ?? ''}
+          onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))}
+          rows={2}
+          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
       </div>
+
       {error && (
         <div className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           {error}
         </div>
       )}
+
       <div className="flex justify-end gap-2 pt-2">
         <button onClick={onCancel} className="rounded-lg border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50">Cancelar</button>
         <button onClick={() => onSave(form)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">Salvar</button>
@@ -236,7 +301,7 @@ export default function Ordens() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="w-full max-w-xl rounded-2xl bg-white p-6 shadow-xl">
             <h2 className="mb-4 text-lg font-semibold text-gray-900">
-              {modal.ordem ? 'Editar Ordem' : 'Nova Ordem de Produção'}
+              {modal.ordem ? 'Editar Lote / OP' : 'Novo Lote / Ordem de Produção'}
             </h2>
             <OrdemForm
               initial={modal.ordem ? {

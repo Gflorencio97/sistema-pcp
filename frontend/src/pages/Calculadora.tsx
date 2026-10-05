@@ -80,9 +80,7 @@ export default function Calculadora() {
 
   const abrirModalLancar = () => {
     const prod = produtos.find(p => p.id === produtoId);
-    const prefixo = prod ? prod.codigo.replace(/[^a-zA-Z0-9]/g, '') : 'OP';
-    const aleatorio = Math.floor(100 + Math.random() * 900);
-    setNumeroOp(`OP-${prefixo}-${aleatorio}`);
+    setNumeroOp(prod ? `${prod.codigo}.0` : '00000.0');
     if (dataPrevisaoConclusao) {
       setDataFim(format(dataPrevisaoConclusao, 'yyyy-MM-dd'));
     }
@@ -376,14 +374,18 @@ export default function Calculadora() {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Número da Ordem (OP / Pedido) *
+                  Identificador do Lote / OP *
                 </label>
                 <input
                   type="text"
                   value={numeroOp}
                   onChange={e => setNumeroOp(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ex: EVCM-7013.0 ou Nº ERP"
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
+                <p className="text-[10px] text-gray-400 mt-1">
+                  Código.0 gerado automaticamente ou digite o número da OP do ERP.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

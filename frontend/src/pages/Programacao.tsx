@@ -481,55 +481,68 @@ export default function Programacao() {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-3">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Número da OP *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={novaOrdemForm.numero}
-                    onChange={(e) => setNovaOrdemForm((f) => ({ ...f, numero: e.target.value }))}
-                    placeholder="Ex: OP-2026-001"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Prioridade
+                    Produto Fabricado *
                   </label>
                   <select
-                    value={novaOrdemForm.prioridade}
-                    onChange={(e) => setNovaOrdemForm((f) => ({ ...f, prioridade: e.target.value as any }))}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    required
+                    value={novaOrdemForm.produto_id}
+                    onChange={(e) => {
+                      const novoId = Number(e.target.value);
+                      const prod = produtos.find(p => p.id === novoId);
+                      setNovaOrdemForm(f => ({
+                        ...f,
+                        produto_id: novoId,
+                        numero: (!f.numero || f.numero.includes('.')) && prod ? `${prod.codigo}.0` : f.numero,
+                      }));
+                    }}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none font-medium"
                   >
-                    <option value="baixa">Baixa</option>
-                    <option value="normal">Normal</option>
-                    <option value="alta">Alta</option>
-                    <option value="urgente">Urgente</option>
+                    <option value={0}>Selecione um produto...</option>
+                    {produtos.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.codigo} — {p.nome} {p.codigo_fundido ? `(Fundido: ${p.codigo_fundido})` : ''}
+                      </option>
+                    ))}
                   </select>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Produto Fabricado *
-                </label>
-                <select
-                  required
-                  value={novaOrdemForm.produto_id}
-                  onChange={(e) => setNovaOrdemForm((f) => ({ ...f, produto_id: Number(e.target.value) }))}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                >
-                  <option value={0}>Selecione um produto...</option>
-                  {produtos.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.codigo} — {p.nome} {p.codigo_fundido ? `(Fundido: ${p.codigo_fundido})` : ''}
-                    </option>
-                  ))}
-                </select>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Identificador do Lote / OP *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={novaOrdemForm.numero}
+                      onChange={(e) => setNovaOrdemForm((f) => ({ ...f, numero: e.target.value }))}
+                      placeholder="Ex: EVCM-7013.0 ou Nº ERP"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-0.5">
+                      Código.0 automático ou informe o nº do ERP.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Prioridade
+                    </label>
+                    <select
+                      value={novaOrdemForm.prioridade}
+                      onChange={(e) => setNovaOrdemForm((f) => ({ ...f, prioridade: e.target.value as any }))}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    >
+                      <option value="baixa">Baixa</option>
+                      <option value="normal">Normal</option>
+                      <option value="alta">Alta</option>
+                      <option value="urgente">Urgente</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

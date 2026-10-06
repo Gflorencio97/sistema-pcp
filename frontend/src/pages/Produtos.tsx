@@ -135,16 +135,25 @@ function RoteiroModal({ produto, onClose }: { produto: Produto; onClose: () => v
 
   const salvarMutation = useMutation({
     mutationFn: () => {
-      const payload = itens.map(i => ({
-        operacao_codigo: i.operacao_codigo,
-        pcs_hora: i.pcs_hora && Number(i.pcs_hora) > 0 ? Number(i.pcs_hora) : null,
-        maquina_id: i.maquina_id,
-        ativo: i.ativo,
-      }));
+      const payload = itens.map(i => {
+        let val = i.pcs_hora && Number(i.pcs_hora) > 0 ? Number(i.pcs_hora) : null;
+        if (val && val > 0 && val < 1.0) {
+          // Se o usuário digitou tempo por peça (ex: 0.032 h/pç), converte para peças por hora (ex: 31.2 pçs/h)
+          val = Math.round((1.0 / val) * 10) / 10;
+        }
+        return {
+          operacao_codigo: i.operacao_codigo,
+          pcs_hora: val,
+          maquina_id: i.maquina_id,
+          ativo: i.ativo,
+        };
+      });
       return roteiroService.salvarRoteiroCompleto(produto.id, payload);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['roteiro', produto.id] });
+      qc.invalidateQueries({ queryKey: ['carga-maquina'] });
+      qc.invalidateQueries({ queryKey: ['carga-maquina-resumo'] });
       setSalvoSucesso(true);
       setTimeout(() => setSalvoSucesso(false), 2500);
     },
@@ -195,7 +204,9 @@ function RoteiroModal({ produto, onClose }: { produto: Produto; onClose: () => v
         ) : (
           <div className="space-y-3">
             {itens.map((item, idx) => {
-              const pcs = Number(item.pcs_hora);
+              const rawPcs = Number(item.pcs_hora);
+              const ehFracionario = rawPcs > 0 && rawPcs < 1.0;
+              const pcs = ehFracionario ? 1 / rawPcs : rawPcs;
               const minPorPeca = pcs > 0 ? ((1 / pcs) * 60).toFixed(2) : null;
 
               // Máquinas compatíveis com essa operação para sugerir no topo
@@ -249,17 +260,24 @@ function RoteiroModal({ produto, onClose }: { produto: Produto; onClose: () => v
                     </div>
 
                     {/* Taxa de Peças/Hora */}
-                    <div className="flex items-center gap-1.5">
-                      <input
-                        type="number"
-                        step="any"
-                        min="0"
-                        value={item.pcs_hora}
-                        onChange={e => handlePcsChange(idx, e.target.value)}
-                        placeholder="0"
-                        className="w-20 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-right text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <span className="text-xs text-gray-500">pçs/h</span>
+                    <div className="flex flex-col items-end">
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="number"
+                          step="any"
+                          min="0"
+                          value={item.pcs_hora}
+                          onChange={e => handlePcsChange(idx, e.target.value)}
+                          placeholder="0"
+                          className="w-20 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-right text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-xs text-gray-500">pçs/h</span>
+                      </div>
+                      {ehFracionario && (
+                        <span className="text-[10px] text-amber-600 font-medium">
+                          ≈ {pcs.toFixed(1)} pçs/h
+                        </span>
+                      )}
                     </div>
 
                     {/* Tempo por peça */}

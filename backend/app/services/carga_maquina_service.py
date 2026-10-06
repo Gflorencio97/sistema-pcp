@@ -76,7 +76,8 @@ def calcular_dashboard_carga_maquina(
         etapas_alocadas = 0
         for item in roteiro_itens:
             if item.maquina_id and item.pcs_hora and item.pcs_hora > 0:
-                horas = qtd_restante / item.pcs_hora
+                taxa = (1.0 / item.pcs_hora) if item.pcs_hora < 1.0 else item.pcs_hora
+                horas = qtd_restante / taxa
                 horas_ocupadas_map[item.maquina_id] += horas
                 ordens_count_map[item.maquina_id] += 1
                 etapas_alocadas += 1
@@ -96,7 +97,8 @@ def calcular_dashboard_carga_maquina(
             )
             for item in roteiro_itens:
                 if item.maquina_id and item.pcs_hora and item.pcs_hora > 0:
-                    horas = sim.quantidade / item.pcs_hora
+                    taxa = (1.0 / item.pcs_hora) if item.pcs_hora < 1.0 else item.pcs_hora
+                    horas = sim.quantidade / taxa
                     horas_ocupadas_map[item.maquina_id] += horas
                     ordens_count_map[item.maquina_id] += 1
 

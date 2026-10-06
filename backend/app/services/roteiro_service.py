@@ -70,7 +70,11 @@ def salvar_roteiro_completo(
     for item_data in itens_novos:
         codigo = item_data.operacao_codigo
         if codigo in mapa:
-            mapa[codigo].pcs_hora = item_data.pcs_hora if (item_data.pcs_hora and item_data.pcs_hora > 0) else None
+            valor_taxa = item_data.pcs_hora
+            if valor_taxa and 0 < valor_taxa < 1.0:
+                # Se o usuário digitou tempo em horas por peça (ex: 0.032), converte para peças/hora (ex: 31.2)
+                valor_taxa = round(1.0 / valor_taxa, 1)
+            mapa[codigo].pcs_hora = valor_taxa if (valor_taxa and valor_taxa > 0) else None
             mapa[codigo].maquina_id = item_data.maquina_id
             mapa[codigo].ativo = item_data.ativo
             mapa[codigo].atualizado_em = datetime.now(timezone.utc)

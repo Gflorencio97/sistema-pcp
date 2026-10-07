@@ -31,7 +31,12 @@ echo [OK] Porta 8085 liberada no Firewall para a rede interna.
 
 echo.
 echo [*] Registrando tarefa "PCP-Evoluttion-Servidor" no Agendador do Windows...
-schtasks /create /tn "PCP-Evoluttion-Servidor" /tr "\"%SCRIPT_PATH%\"" /sc onstart /ru SYSTEM /rl HIGHEST /f
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$action = New-ScheduledTaskAction -Execute '%SCRIPT_PATH%'; $trigger = New-ScheduledTaskTrigger -AtStartup; Register-ScheduledTask -TaskName 'PCP-Evoluttion-Servidor' -Action $action -Trigger $trigger -User 'SYSTEM' -RunLevel Highest -Force"
+
+if %errorLevel% neq 0 (
+    echo [!] Tentando registrar via schtasks...
+    schtasks /create /tn "PCP-Evoluttion-Servidor" /tr "%SCRIPT_PATH%" /sc onstart /ru SYSTEM /rl HIGHEST /f
+)
 
 if %errorLevel% equ 0 (
     echo.

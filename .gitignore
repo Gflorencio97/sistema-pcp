@@ -28,3 +28,8 @@ Thumbs.db
 # Logs e arquivos temporários
 *.log
 scratch/
+
+# Banco de dados real (nao versionar: dados ficam so no servidor)
+backend/pcp.db
+backend/pcp.db-*
+pcp.db

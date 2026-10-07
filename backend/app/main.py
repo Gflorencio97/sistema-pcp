@@ -12,11 +12,12 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS - permite o frontend React acessar a API
+# CORS - permite qualquer computador na rede local acessar a API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
+    allow_origin_regex=r"^https?://.*",
     allow_methods=["*"],
     allow_headers=["*"],
 )

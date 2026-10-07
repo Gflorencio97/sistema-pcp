@@ -8,7 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
+# dist (permitido no git para deploy no Windows Server sem necessidade de Node.js)
 dist-ssr
 *.local
 

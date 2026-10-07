@@ -11,8 +11,8 @@ __pycache__/
 # Dependências Node.js
 frontend/node_modules/
 node_modules/
-frontend/dist/
-dist/
+# frontend/dist/ (comentado para deploy direto em servidores sem Node.js)
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

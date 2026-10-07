@@ -19,6 +19,7 @@ class ProdutoCreate(ProdutoBase):
 
 
 class ProdutoUpdate(BaseModel):
+    codigo: Optional[str] = None
     nome: Optional[str] = None
     descricao: Optional[str] = None
     codigo_fundido: Optional[str] = None

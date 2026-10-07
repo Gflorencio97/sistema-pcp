@@ -9,7 +9,8 @@ from app.services import maquina_service
 router = APIRouter(prefix="/maquinas", tags=["Máquinas"])
 
 
-@router.get("/", response_model=List[MaquinaResponse])
+@router.get("", response_model=List[MaquinaResponse])
+@router.get("/", response_model=List[MaquinaResponse], include_in_schema=False)
 def listar_maquinas(
     skip: int = 0,
     limit: int = 100,
@@ -29,8 +30,11 @@ def obter_maquina(maquina_id: int, db: Session = Depends(get_db)):
     return maquina
 
 
-@router.post("/", response_model=MaquinaResponse, status_code=201)
+@router.post("", response_model=MaquinaResponse, status_code=201)
+@router.post("/", response_model=MaquinaResponse, status_code=201, include_in_schema=False)
 def criar_maquina(maquina: MaquinaCreate, db: Session = Depends(get_db)):
+    maquina.codigo = maquina.codigo.strip()
+    maquina.nome = maquina.nome.strip()
     if maquina_service.get_maquina_by_codigo(db, maquina.codigo):
         raise HTTPException(status_code=400, detail=f"Código '{maquina.codigo}' já está em uso")
     return maquina_service.create_maquina(db, maquina)

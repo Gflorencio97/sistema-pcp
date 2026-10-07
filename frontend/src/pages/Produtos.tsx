@@ -496,11 +496,22 @@ export default function Produtos() {
               onSave={handleSave}
               onCancel={() => setModal({ open: false })}
             />
-            {(criar.error || atualizar.error) && (
-              <div className="mt-3 flex items-center gap-2 text-sm text-red-600">
-                <AlertCircle className="h-4 w-4" /> Erro ao salvar produto. Verifique se o código já existe.
-              </div>
-            )}
+            {(criar.error || atualizar.error) && (() => {
+              const err: any = criar.error || atualizar.error;
+              let msg = 'Erro ao salvar produto.';
+              if (err?.response?.data?.detail) {
+                const d = err.response.data.detail;
+                msg = typeof d === 'string' ? d : Array.isArray(d) ? d.map((x: any) => x.msg || x.loc?.slice(-1)[0]).join(', ') : JSON.stringify(d);
+              } else if (err?.message) {
+                msg = err.message;
+              }
+              return (
+                <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-50 p-2.5 text-sm text-red-700 border border-red-200">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span>{msg}</span>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}

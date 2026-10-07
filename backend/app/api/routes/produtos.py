@@ -8,7 +8,8 @@ from app.services import produto_service
 router = APIRouter(prefix="/produtos", tags=["Produtos"])
 
 
-@router.get("/", response_model=List[ProdutoResponse])
+@router.get("", response_model=List[ProdutoResponse])
+@router.get("/", response_model=List[ProdutoResponse], include_in_schema=False)
 def listar_produtos(
     skip: int = 0,
     limit: int = 100,
@@ -27,10 +28,14 @@ def obter_produto(produto_id: int, db: Session = Depends(get_db)):
     return produto
 
 
-@router.post("/", response_model=ProdutoResponse, status_code=201)
+@router.post("", response_model=ProdutoResponse, status_code=201)
+@router.post("/", response_model=ProdutoResponse, status_code=201, include_in_schema=False)
 def criar_produto(produto: ProdutoCreate, db: Session = Depends(get_db)):
+    # Remove espaços em branco nas pontas
+    produto.codigo = produto.codigo.strip()
+    produto.nome = produto.nome.strip()
     if produto_service.get_produto_by_codigo(db, produto.codigo):
-        raise HTTPException(status_code=400, detail=f"Código '{produto.codigo}' já está em uso")
+        raise HTTPException(status_code=400, detail=f"Código '{produto.codigo}' já está cadastrado no sistema")
     return produto_service.create_produto(db, produto)
 
 

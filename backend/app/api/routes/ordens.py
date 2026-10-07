@@ -10,7 +10,8 @@ from app.services import ordem_service
 router = APIRouter(prefix="/ordens", tags=["Ordens de Produção"])
 
 
-@router.get("/", response_model=List[OrdemProducaoResponse])
+@router.get("", response_model=List[OrdemProducaoResponse])
+@router.get("/", response_model=List[OrdemProducaoResponse], include_in_schema=False)
 def listar_ordens(
     skip: int = 0,
     limit: int = 100,
@@ -54,8 +55,10 @@ def obter_ordem(ordem_id: int, db: Session = Depends(get_db)):
     return ordem
 
 
-@router.post("/", response_model=OrdemProducaoResponse, status_code=201)
+@router.post("", response_model=OrdemProducaoResponse, status_code=201)
+@router.post("/", response_model=OrdemProducaoResponse, status_code=201, include_in_schema=False)
 def criar_ordem(ordem: OrdemProducaoCreate, db: Session = Depends(get_db)):
+    ordem.numero = ordem.numero.strip()
     if ordem_service.get_ordem_by_numero(db, ordem.numero):
         raise HTTPException(status_code=400, detail=f"Número '{ordem.numero}' já está em uso")
 

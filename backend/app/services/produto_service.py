@@ -47,6 +47,14 @@ def update_produto(db: Session, produto_id: int, produto_update: ProdutoUpdate) 
     if not db_produto:
         return None
     update_data = produto_update.model_dump(exclude_unset=True)
+    if "codigo" in update_data and update_data["codigo"]:
+        update_data["codigo"] = update_data["codigo"].strip()
+        existente = get_produto_by_codigo(db, update_data["codigo"])
+        if existente and existente.id != produto_id:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=400, detail=f"Código '{update_data['codigo']}' já está cadastrado em outro produto")
+    if "nome" in update_data and update_data["nome"]:
+        update_data["nome"] = update_data["nome"].strip()
     for field, value in update_data.items():
         setattr(db_produto, field, value)
     db_produto.atualizado_em = datetime.now(timezone.utc)

@@ -39,8 +39,8 @@ cd PCP-Evoluttion
 
 Qualquer computador ou celular conectado na rede da empresa acessa digitando:
 
-👉 **`http://<IP_DO_SERVIDOR>:8000`**  
-*(Exemplo: `http://192.168.15.10:8000`)*
+👉 **`http://<IP_DO_SERVIDOR>:8085`**  
+*(Exemplo: `http://192.168.15.10:8085`)*
 
 ---
 

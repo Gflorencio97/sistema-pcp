@@ -9,8 +9,8 @@ echo.
 
 cd /d "%~dp0\.."
 
-REM Porta padrao do sistema no servidor (8000 ou 80)
-set PORTA=8000
+REM Porta padrao do sistema no servidor (8085 para nao conflitar com WiseFi/outros)
+set PORTA=8085
 
 REM Detecta o IP do servidor
 for /f "tokens=*" %%i in ('powershell -NoProfile -Command "(Test-Connection -ComputerName $env:COMPUTERNAME -Count 1).IPV4Address.IPAddressToString"') do set IP_SRV=%%i

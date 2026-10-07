@@ -24,10 +24,10 @@ if %errorLevel% neq 0 (
 cd /d "%~dp0"
 set SCRIPT_PATH=%~dp0iniciar_servidor.bat
 
-echo [*] Liberando porta 8000 no Firewall do Windows Server...
-netsh advfirewall firewall delete rule name="PCP Evoluttion (Porta 8000)" >nul 2>&1
-netsh advfirewall firewall add rule name="PCP Evoluttion (Porta 8000)" dir=in action=allow protocol=TCP localport=8000 profile=any >nul 2>&1
-echo [OK] Porta 8000 liberada no Firewall para a rede interna.
+echo [*] Liberando porta 8085 no Firewall do Windows Server...
+netsh advfirewall firewall delete rule name="PCP Evoluttion (Porta 8085)" >nul 2>&1
+netsh advfirewall firewall add rule name="PCP Evoluttion (Porta 8085)" dir=in action=allow protocol=TCP localport=8085 profile=any >nul 2>&1
+echo [OK] Porta 8085 liberada no Firewall para a rede interna.
 
 echo.
 echo [*] Registrando tarefa "PCP-Evoluttion-Servidor" no Agendador do Windows...

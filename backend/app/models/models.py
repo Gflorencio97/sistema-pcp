@@ -109,7 +109,7 @@ class OrdemProducao(Base):
     __tablename__ = "ordens_producao"
 
     id = Column(Integer, primary_key=True, index=True)
-    numero = Column(String(50), unique=True, nullable=False, index=True)
+    numero = Column(String(50), nullable=False, index=True)  # pode repetir entre ordens
     produto_id = Column(Integer, ForeignKey("produtos.id"), nullable=False)
     maquina_id = Column(Integer, ForeignKey("maquinas.id"), nullable=True)
     quantidade_planejada = Column(Float, nullable=False)

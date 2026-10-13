@@ -46,7 +46,7 @@ export default function Programacao() {
     numero: '',
     produto_id: 0,
     maquina_id: undefined,
-    quantidade_planejada: 1000,
+    quantidade_planejada: 0,
     prioridade: 'normal',
     data_inicio_planejada: format(new Date(), "yyyy-MM-dd'T'07:00"),
     data_fim_planejada: format(addDays(new Date(), 5), "yyyy-MM-dd'T'17:00"),
@@ -159,7 +159,7 @@ export default function Programacao() {
         numero: '',
         produto_id: 0,
         maquina_id: undefined,
-        quantidade_planejada: 1000,
+        quantidade_planejada: 0,
         prioridade: 'normal',
         data_inicio_planejada: format(new Date(), "yyyy-MM-dd'T'07:00"),
         data_fim_planejada: format(addDays(new Date(), 5), "yyyy-MM-dd'T'17:00"),
@@ -176,6 +176,10 @@ export default function Programacao() {
     e.preventDefault();
     if (!novaOrdemForm.numero.trim() || !novaOrdemForm.produto_id) {
       setErroNovaOrdem('Número da OP e Produto são obrigatórios.');
+      return;
+    }
+    if (!novaOrdemForm.quantidade_planejada || novaOrdemForm.quantidade_planejada <= 0) {
+      setErroNovaOrdem('Informe a quantidade planejada (maior que zero).');
       return;
     }
     criarOrdemMutation.mutate(novaOrdemForm);
@@ -577,7 +581,8 @@ export default function Programacao() {
                     type="number"
                     min={1}
                     required
-                    value={novaOrdemForm.quantidade_planejada}
+                    placeholder="Ex: 4000"
+                    value={novaOrdemForm.quantidade_planejada || ''}
                     onChange={(e) =>
                       setNovaOrdemForm((f) => ({
                         ...f,

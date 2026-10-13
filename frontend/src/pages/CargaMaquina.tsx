@@ -105,13 +105,16 @@ export default function CargaMaquina() {
   const queryClient = useQueryClient();
   const [diasUteis, setDiasUteis] = useState<number>(22);
   const [horasDia, setHorasDia] = useState<number>(8.8);
+  const [filtrarMes, setFiltrarMes] = useState<boolean>(false);
+  const [mes, setMes] = useState<string>(new Date().toISOString().slice(0, 7));
+  const mesAtivo = filtrarMes && mes ? mes : undefined;
   const [abaAtiva, setAbaAtiva] = useState<'maquina' | 'homem_maquina'>('homem_maquina');
   const [modalAjusteMODAberto, setModalAjusteMODAberto] = useState(false);
   const [valoresEdicaoMOD, setValoresEdicaoMOD] = useState<Record<string, number>>({});
 
   const { data, isLoading } = useQuery({
-    queryKey: ['carga-maquina', diasUteis, horasDia],
-    queryFn: () => cargaMaquinaService.obterResumo({ dias_uteis: diasUteis, horas_dia: horasDia }),
+    queryKey: ['carga-maquina', diasUteis, horasDia, mesAtivo],
+    queryFn: () => cargaMaquinaService.obterResumo({ dias_uteis: diasUteis, horas_dia: horasDia, mes: mesAtivo }),
   });
 
   const { data: listaMOD = [] } = useQuery({
@@ -190,6 +193,29 @@ export default function CargaMaquina() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="h-4 w-[1px] bg-gray-200" />
+
+            <div className="flex items-center gap-1.5 px-2">
+              <Calendar className="h-4 w-4 text-gray-400" />
+              <span className="text-xs font-medium text-gray-600">Período:</span>
+              <select
+                value={filtrarMes ? 'mes' : 'geral'}
+                onChange={(e) => setFiltrarMes(e.target.value === 'mes')}
+                className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="geral">Toda a fila (geral)</option>
+                <option value="mes">Por mês</option>
+              </select>
+              {filtrarMes && (
+                <input
+                  type="month"
+                  value={mes}
+                  onChange={(e) => setMes(e.target.value)}
+                  className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              )}
             </div>
 
             <div className="h-4 w-[1px] bg-gray-200" />

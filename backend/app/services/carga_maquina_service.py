@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session, joinedload
 from typing import Dict, List, Optional
 from collections import defaultdict
+from datetime import timedelta
 
 from app.models.models import Maquina, Produto, OrdemProducao, RoteiroProduto, StatusMaquina, StatusOrdem, OPERACOES_FABRICA, SetorMOD
 from app.schemas.carga_maquina import (
@@ -29,11 +30,30 @@ def _determinar_tipo_gargalo(pct_maquina: float, pct_mod: float) -> str:
     return "equilibrado"
 
 
+def _fator_mes(op, mes: Optional[str]) -> float:
+    """Fracao (0 a 1) da OP que cai no mes 'AAAA-MM', distribuida pelos dias uteis
+    (seg-sex) entre a data de inicio e a de fim planejadas. Sem datas => 0."""
+    if not mes:
+        return 1.0
+    ini, fim = op.data_inicio_planejada, op.data_fim_planejada
+    if not ini or not fim:
+        return 0.0
+    ano, m = (int(x) for x in mes.split("-"))
+    d_ini, d_fim = ini.date(), fim.date()
+    if d_fim < d_ini:
+        d_fim = d_ini
+    dias = [d_ini + timedelta(n) for n in range((d_fim - d_ini).days + 1)]
+    uteis = [d for d in dias if d.weekday() < 5] or dias
+    no_mes = sum(1 for d in uteis if d.year == ano and d.month == m)
+    return no_mes / len(uteis)
+
+
 def calcular_dashboard_carga_maquina(
     db: Session,
     dias_uteis: int = 22,
     horas_dia_padrao: float = 8.8,
     pedidos_simulados: Optional[List[ItemSimulacao]] = None,
+    mes: Optional[str] = None,
 ) -> CargaMaquinaDashboardResponse:
     # 1. Obter todas as máquinas ativas
     maquinas = (
@@ -64,6 +84,7 @@ def calcular_dashboard_carga_maquina(
 
     for op in ordens_ativas:
         qtd_restante = max(0.0, (op.quantidade_planejada or 0.0) - (op.quantidade_produzida or 0.0))
+        qtd_restante *= _fator_mes(op, mes)
         if qtd_restante <= 0:
             continue
 

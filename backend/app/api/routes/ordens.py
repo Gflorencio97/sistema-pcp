@@ -58,9 +58,8 @@ def obter_ordem(ordem_id: int, db: Session = Depends(get_db)):
 @router.post("", response_model=OrdemProducaoResponse, status_code=201)
 @router.post("/", response_model=OrdemProducaoResponse, status_code=201, include_in_schema=False)
 def criar_ordem(ordem: OrdemProducaoCreate, db: Session = Depends(get_db)):
+    # O mesmo número de OP pode ser lançado mais de uma vez (em meses diferentes ou no mesmo mês).
     ordem.numero = ordem.numero.strip()
-    if ordem_service.get_ordem_by_numero(db, ordem.numero):
-        raise HTTPException(status_code=400, detail=f"Número '{ordem.numero}' já está em uso")
 
     # Verifica conflitos se maquina e datas foram informadas
     if ordem.maquina_id and ordem.data_inicio_planejada and ordem.data_fim_planejada:

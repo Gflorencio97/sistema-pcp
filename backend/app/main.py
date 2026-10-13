@@ -9,6 +9,23 @@ from app.api.routes import maquinas, produtos, ordens, roteiro, carga_maquina
 # Cria as tabelas no banco (em produção use Alembic)
 Base.metadata.create_all(bind=engine)
 
+
+def _permitir_numero_op_repetido():
+    """Bancos antigos tem indice UNICO em ordens_producao.numero.
+    Troca por indice comum (idempotente, sem perder dados)."""
+    from sqlalchemy import text
+    with engine.begin() as conn:
+        if engine.dialect.name != "sqlite":
+            return
+        idx = conn.execute(text("PRAGMA index_list('ordens_producao')")).fetchall()
+        # colunas: seq, name, unique, origin, partial
+        if any(r[1] == "ix_ordens_producao_numero" and r[2] == 1 for r in idx):
+            conn.execute(text("DROP INDEX ix_ordens_producao_numero"))
+            conn.execute(text("CREATE INDEX ix_ordens_producao_numero ON ordens_producao (numero)"))
+
+
+_permitir_numero_op_repetido()
+
 app = FastAPI(
     title="PCP - Planejamento e Controle da Produção",
     description="API para gestão de produção industrial: máquinas, produtos e programação.",

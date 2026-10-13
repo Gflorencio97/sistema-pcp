@@ -35,7 +35,7 @@ function OrdemForm({ initial, onSave, onCancel, error }: {
     numero: initial?.numero ?? '',
     produto_id: initial?.produto_id ?? 0,
     maquina_id: initial?.maquina_id,
-    quantidade_planejada: initial?.quantidade_planejada ?? 1,
+    quantidade_planejada: initial?.quantidade_planejada ?? 0,
     prioridade: initial?.prioridade ?? 'normal',
     data_inicio_planejada: initial?.data_inicio_planejada ?? '',
     data_fim_planejada: initial?.data_fim_planejada ?? '',
@@ -124,7 +124,9 @@ function OrdemForm({ initial, onSave, onCancel, error }: {
           <input
             type="number"
             min={1}
-            value={form.quantidade_planejada}
+            required
+            placeholder="Ex: 4000"
+            value={form.quantidade_planejada || ''}
             onChange={e => setForm(f => ({ ...f, quantidade_planejada: Number(e.target.value) }))}
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />

@@ -18,6 +18,7 @@ router = APIRouter(prefix="/carga-maquina", tags=["Carga Máquina"])
 def obter_resumo_carga_maquina(
     dias_uteis: int = Query(22, ge=1, le=31, description="Dias úteis no mês trabalhado"),
     horas_dia: float = Query(8.8, ge=1, le=24, description="Horas disponíveis por dia por máquina (8.8h padrão 1º turno)"),
+    mes: Optional[str] = Query(None, pattern=r"^\d{4}-(0[1-9]|1[0-2])$", description="Mês AAAA-MM. Sem valor = toda a fila"),
     db: Session = Depends(get_db),
 ):
     """
@@ -25,7 +26,7 @@ def obter_resumo_carga_maquina(
     incluindo o balanço completo de Homem x Máquina (Mão de Obra Direta - MOD).
     """
     return carga_maquina_service.calcular_dashboard_carga_maquina(
-        db, dias_uteis=dias_uteis, horas_dia_padrao=horas_dia
+        db, dias_uteis=dias_uteis, horas_dia_padrao=horas_dia, mes=mes
     )
 
 

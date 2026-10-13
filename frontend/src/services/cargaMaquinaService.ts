@@ -2,7 +2,7 @@ import api from './api';
 import type { CargaMaquinaDashboardResponse, SetorMOD, SetorMODUpdate } from '../types';
 
 export const cargaMaquinaService = {
-  obterResumo: (params?: { dias_uteis?: number; horas_dia?: number }) =>
+  obterResumo: (params?: { dias_uteis?: number; horas_dia?: number; mes?: string }) =>
     api.get<CargaMaquinaDashboardResponse>('/carga-maquina/resumo', { params }).then(r => r.data),
 
   simular: (data: { dias_uteis?: number; horas_dia?: number; pedidos: { produto_id: number; quantidade: number }[] }) =>

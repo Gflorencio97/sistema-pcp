@@ -437,7 +437,7 @@ export default function Calculadora() {
               {lancarProducaoMutation.error && (
                 <div className="rounded-xl bg-red-50 p-3 text-xs text-red-700 border border-red-200">
                   <AlertCircle className="h-4 w-4 inline mr-1" />
-                  Erro ao lançar ordem. Verifique se o número da OP já existe ou se há conflito de agenda.
+                  Erro ao lançar ordem. Verifique se há conflito de agenda na máquina.
                 </div>
               )}
             </div>

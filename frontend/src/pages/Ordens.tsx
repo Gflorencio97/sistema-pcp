@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Pencil, Trash2, AlertTriangle } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, AlertTriangle, X } from 'lucide-react';
 import { ordemService } from '../services/ordemService';
 import { maquinaService } from '../services/maquinaService';
 import { produtoService } from '../services/produtoService';
@@ -183,13 +183,50 @@ export default function Ordens() {
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [statusFiltro, setStatusFiltro] = useState('');
+  const [produtoFiltro, setProdutoFiltro] = useState('');
+  const [maquinaFiltro, setMaquinaFiltro] = useState('');
+  const [prioridadeFiltro, setPrioridadeFiltro] = useState('');
+  const [mesFiltro, setMesFiltro] = useState('');
   const [modal, setModal] = useState<{ open: boolean; ordem?: OrdemProducao }>({ open: false });
   const [formError, setFormError] = useState('');
 
-  const { data: ordens = [], isLoading } = useQuery({
-    queryKey: ['ordens', search, statusFiltro],
-    queryFn: () => ordemService.listar({ search: search || undefined, status: statusFiltro || undefined }),
+  const { data: ordensBrutas = [], isLoading } = useQuery({
+    queryKey: ['ordens', search, statusFiltro, produtoFiltro, maquinaFiltro, prioridadeFiltro],
+    queryFn: () => ordemService.listar({
+      search: search || undefined,
+      status: statusFiltro || undefined,
+      produto_id: produtoFiltro ? Number(produtoFiltro) : undefined,
+      maquina_id: maquinaFiltro ? Number(maquinaFiltro) : undefined,
+      prioridade: prioridadeFiltro || undefined,
+      limit: 1000,
+    }),
   });
+
+  const { data: listaProdutos = [] } = useQuery({
+    queryKey: ['produtos-filtro'],
+    queryFn: () => produtoService.listar(),
+  });
+  const { data: listaMaquinas = [] } = useQuery({
+    queryKey: ['maquinas-filtro'],
+    queryFn: () => maquinaService.listar(),
+  });
+
+  // Mais recente (última lançada) no topo; filtro de mês pelo período planejado da OP.
+  const ordens = ordensBrutas
+    .filter(o => {
+      if (!mesFiltro) return true;
+      if (!o.data_inicio_planejada && !o.data_fim_planejada) return false;
+      const ini = (o.data_inicio_planejada ?? o.data_fim_planejada!).slice(0, 7);
+      const fim = (o.data_fim_planejada ?? o.data_inicio_planejada!).slice(0, 7);
+      return ini <= mesFiltro && mesFiltro <= fim;
+    })
+    .sort((a, b) => b.id - a.id);
+
+  const filtrosAtivos = !!(search || statusFiltro || produtoFiltro || maquinaFiltro || prioridadeFiltro || mesFiltro);
+  const limparFiltros = () => {
+    setSearch(''); setStatusFiltro(''); setProdutoFiltro('');
+    setMaquinaFiltro(''); setPrioridadeFiltro(''); setMesFiltro('');
+  };
 
   const criar = useMutation({
     mutationFn: ordemService.criar,
@@ -240,6 +277,39 @@ export default function Ordens() {
           <option value="concluida">Concluída</option>
           <option value="cancelada">Cancelada</option>
         </select>
+      </div>
+
+      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl bg-white px-4 py-2 shadow-sm border border-gray-100">
+        <select value={produtoFiltro} onChange={e => setProdutoFiltro(e.target.value)}
+          className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none">
+          <option value="">Todos os produtos</option>
+          {listaProdutos.map(p => <option key={p.id} value={p.id}>{p.codigo} — {p.nome}</option>)}
+        </select>
+        <select value={maquinaFiltro} onChange={e => setMaquinaFiltro(e.target.value)}
+          className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none">
+          <option value="">Todas as máquinas</option>
+          {listaMaquinas.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
+        </select>
+        <select value={prioridadeFiltro} onChange={e => setPrioridadeFiltro(e.target.value)}
+          className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none">
+          <option value="">Todas as prioridades</option>
+          <option value="baixa">Baixa</option>
+          <option value="normal">Normal</option>
+          <option value="alta">Alta</option>
+          <option value="urgente">Urgente</option>
+        </select>
+        <label className="flex items-center gap-2 text-xs text-gray-500">
+          Mês:
+          <input type="month" value={mesFiltro} onChange={e => setMesFiltro(e.target.value)}
+            className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none" />
+        </label>
+        {filtrosAtivos && (
+          <button onClick={limparFiltros}
+            className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800">
+            <X className="h-3.5 w-3.5" /> Limpar filtros
+          </button>
+        )}
+        <span className="ml-auto text-xs text-gray-400">{ordens.length} ordem(ns)</span>
       </div>
 
       <div className="rounded-xl bg-white shadow-sm border border-gray-100 overflow-hidden">

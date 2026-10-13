@@ -2,8 +2,8 @@ import api from './api';
 import type { OrdemProducao, OrdemCreate, OrdemGantt } from '../types';
 
 export const ordemService = {
-  listar: (params?: { status?: string; maquina_id?: number; search?: string }) =>
-    api.get<OrdemProducao[]>('/ordens/', { params }).then(r => r.data),
+  listar: (params?: { status?: string; maquina_id?: number; produto_id?: number; prioridade?: string; search?: string; limit?: number }) =>
+    api.get<OrdemProducao[]>('/ordens/', { params: { limit: 1000, ...params } }).then(r => r.data),
 
   gantt: (params?: { data_inicio?: string; data_fim?: string; maquina_id?: number; incluir_concluidas?: boolean }) =>
     api.get<OrdemGantt[]>('/ordens/gantt', { params }).then(r => r.data),

@@ -2,8 +2,8 @@ import api from './api';
 import type { Maquina, MaquinaCreate } from '../types';
 
 export const maquinaService = {
-  listar: (params?: { status?: string; setor?: string; search?: string }) =>
-    api.get<Maquina[]>('/maquinas', { params }).then(r => r.data),
+  listar: (params?: { status?: string; setor?: string; search?: string; limit?: number }) =>
+    api.get<Maquina[]>('/maquinas', { params: { limit: 1000, ...params } }).then(r => r.data),
 
   obter: (id: number) =>
     api.get<Maquina>(`/maquinas/${id}`).then(r => r.data),

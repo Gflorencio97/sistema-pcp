@@ -12,7 +12,7 @@ OPERACOES_FABRICA = [
     {"codigo": "FUR_07",      "nome": "Furação 0,7",             "ordem": 3},
     {"codigo": "BRUNIMENTO",  "nome": "Brunimento",              "ordem": 4},
     {"codigo": "ROLETAMENTO", "nome": "Roletamento",             "ordem": 5},
-    {"codigo": "LAV_INSP",    "nome": "Lavagem / Inspeção",      "ordem": 6},
+    {"codigo": "LAV_INSP",    "nome": "Inspeção",                "ordem": 6},
 ]
 
 
@@ -52,6 +52,7 @@ class Maquina(Base):
     turno_manha = Column(Boolean, default=True)
     turno_tarde = Column(Boolean, default=False)
     turno_noite = Column(Boolean, default=False)
+    horas_extras_dia = Column(Float, default=0.0, comment="Horas extras (HE) disponiveis por dia, apos o ultimo turno")
     criado_em = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     atualizado_em = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
@@ -121,11 +122,33 @@ class OrdemProducao(Base):
     data_inicio_real = Column(DateTime(timezone=True), nullable=True)
     data_fim_real = Column(DateTime(timezone=True), nullable=True)
     observacoes = Column(Text, nullable=True)
+    fim_manual = Column(Boolean, default=False, comment="True = data de fim ajustada a mao; False = calculada por pecas/hora e turnos")
     criado_em = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     atualizado_em = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     produto = relationship("Produto", back_populates="ordens")
     maquina = relationship("Maquina", back_populates="ordens")
+    etapas = relationship("EtapaOrdem", back_populates="ordem", cascade="all, delete-orphan",
+                          order_by="EtapaOrdem.sequencia")
+
+
+class EtapaOrdem(Base):
+    """Etapa (operacao do roteiro) de uma ordem, com a linha e o periodo calculados."""
+    __tablename__ = "etapas_ordem"
+
+    id = Column(Integer, primary_key=True, index=True)
+    ordem_id = Column(Integer, ForeignKey("ordens_producao.id"), nullable=False, index=True)
+    sequencia = Column(Integer, nullable=False, default=1)
+    operacao_codigo = Column(String(20), nullable=False)
+    operacao_nome = Column(String(100), nullable=False)
+    maquina_id = Column(Integer, ForeignKey("maquinas.id"), nullable=True)
+    quantidade = Column(Float, nullable=False)
+    pcs_hora = Column(Float, nullable=True)
+    data_inicio_planejada = Column(DateTime(timezone=True), nullable=True)
+    data_fim_planejada = Column(DateTime(timezone=True), nullable=True)
+
+    ordem = relationship("OrdemProducao", back_populates="etapas")
+    maquina = relationship("Maquina")
 
 
 class SetorMOD(Base):

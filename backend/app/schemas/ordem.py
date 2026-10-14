@@ -17,6 +17,7 @@ class OrdemProducaoBase(BaseModel):
     data_inicio_planejada: Optional[datetime] = None
     data_fim_planejada: Optional[datetime] = None
     observacoes: Optional[str] = None
+    fim_manual: bool = False
 
 
 class OrdemProducaoCreate(OrdemProducaoBase):
@@ -34,6 +35,7 @@ class OrdemProducaoUpdate(BaseModel):
     data_inicio_real: Optional[datetime] = None
     data_fim_real: Optional[datetime] = None
     observacoes: Optional[str] = None
+    fim_manual: Optional[bool] = None
 
 
 class OrdemProducaoResponse(OrdemProducaoBase):
@@ -70,6 +72,16 @@ class OrdemGantt(BaseModel):
     quantidade_produzida: float
     percentual_conclusao: float = 0.0
     observacoes: Optional[str] = None
+    etapa_id: Optional[int] = None
+    etapa_seq: Optional[int] = None
+    etapa_total: Optional[int] = None
+    etapa_nome: Optional[str] = None
+    ordem_maquina_id: Optional[int] = None
+    ordem_data_inicio: Optional[datetime] = None
+    ordem_data_fim: Optional[datetime] = None
+    ordem_fim_calculado: Optional[datetime] = None
+    ordem_fim_manual: Optional[bool] = None
+    falta_capacidade_dias: Optional[int] = None
 
     class Config:
         from_attributes = True

@@ -30,32 +30,36 @@ const PRIORIDADE_LABELS: Record<PrioridadeOrdem, { label: string; badge: string 
 export default function GanttModalDetalhes({ ordem, maquinas, onClose, onSuccess }: GanttModalDetalhesProps) {
   const queryClient = useQueryClient();
 
-  const [maquinaId, setMaquinaId] = useState<number | undefined>(ordem?.maquina_id);
+  const [maquinaId, setMaquinaId] = useState<number | undefined>(ordem?.ordem_maquina_id ?? ordem?.maquina_id);
   const [status, setStatus] = useState<StatusOrdem>(ordem?.status ?? 'planejada');
   const [prioridade, setPrioridade] = useState<PrioridadeOrdem>(ordem?.prioridade ?? 'normal');
   const [dataInicio, setDataInicio] = useState<string>('');
   const [dataFim, setDataFim] = useState<string>('');
+  const [fimManual, setFimManual] = useState<boolean>(false);
   const [qtdProduzida, setQtdProduzida] = useState<number>(ordem?.quantidade_produzida ?? 0);
   const [observacoes, setObservacoes] = useState<string>(ordem?.observacoes ?? '');
   const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
     if (ordem) {
-      setMaquinaId(ordem.maquina_id);
+      setMaquinaId(ordem.ordem_maquina_id ?? ordem.maquina_id);
       setStatus(ordem.status);
       setPrioridade(ordem.prioridade);
       setQtdProduzida(ordem.quantidade_produzida ?? 0);
       setObservacoes(ordem.observacoes ?? '');
+      setFimManual(!!ordem.ordem_fim_manual);
       setErro(null);
 
-      if (ordem.data_inicio_planejada) {
-        setDataInicio(ordem.data_inicio_planejada.slice(0, 16));
+      const iniOp = ordem.ordem_data_inicio ?? ordem.data_inicio_planejada;
+      const fimOp = ordem.ordem_data_fim ?? ordem.data_fim_planejada;
+      if (iniOp) {
+        setDataInicio(iniOp.slice(0, 16));
       } else {
         setDataInicio('');
       }
 
-      if (ordem.data_fim_planejada) {
-        setDataFim(ordem.data_fim_planejada.slice(0, 16));
+      if (fimOp) {
+        setDataFim(fimOp.slice(0, 16));
       } else {
         setDataFim('');
       }
@@ -88,13 +92,14 @@ export default function GanttModalDetalhes({ ordem, maquinas, onClose, onSuccess
       prioridade,
       quantidade_produzida: Number(qtdProduzida),
       observacoes: observacoes || null,
+      fim_manual: fimManual,
     };
 
     if (dataInicio) {
-      payload.data_inicio_planejada = new Date(dataInicio).toISOString();
+      payload.data_inicio_planejada = dataInicio;
     }
     if (dataFim) {
-      payload.data_fim_planejada = new Date(dataFim).toISOString();
+      payload.data_fim_planejada = dataFim;
     }
 
     updateMutation.mutate(payload);
@@ -303,9 +308,26 @@ export default function GanttModalDetalhes({ ordem, maquinas, onClose, onSuccess
                 <input
                   type="datetime-local"
                   value={dataFim}
-                  onChange={(e) => setDataFim(e.target.value)}
+                  onChange={(e) => { setDataFim(e.target.value); setFimManual(true); }}
                   className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
+                {fimManual ? (
+                  <p className="mt-1 text-[11px] text-gray-500">
+                    Fim ajustado manualmente.{' '}
+                    <button
+                      type="button"
+                      className="font-medium text-blue-600 hover:underline"
+                      onClick={() => setFimManual(false)}
+                    >
+                      Usar cálculo automático
+                    </button>{' '}
+                    (vale ao salvar)
+                  </p>
+                ) : (
+                  <p className="mt-1 text-[11px] text-gray-500">
+                    Fim calculado por peças/hora e turnos. Edite para ajustar.
+                  </p>
+                )}
               </div>
             </div>
           </div>

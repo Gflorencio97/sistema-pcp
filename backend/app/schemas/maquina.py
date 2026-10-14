@@ -18,6 +18,7 @@ class MaquinaBase(BaseModel):
     turno_manha: bool = True
     turno_tarde: bool = True
     turno_noite: bool = False
+    horas_extras_dia: Optional[float] = Field(default=0.0, ge=0, le=8, description="HE disponiveis por dia")
 
 
 class MaquinaCreate(MaquinaBase):
@@ -35,6 +36,7 @@ class MaquinaUpdate(BaseModel):
     turno_manha: Optional[bool] = None
     turno_tarde: Optional[bool] = None
     turno_noite: Optional[bool] = None
+    horas_extras_dia: Optional[float] = None
 
 
 class MaquinaResponse(MaquinaBase):

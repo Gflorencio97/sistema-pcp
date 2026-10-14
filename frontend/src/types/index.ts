@@ -62,6 +62,7 @@ export interface Maquina {
   turno_manha: boolean;
   turno_tarde: boolean;
   turno_noite: boolean;
+  horas_extras_dia?: number;
   criado_em: string;
   atualizado_em: string;
 }
@@ -78,6 +79,7 @@ export interface MaquinaCreate {
   turno_manha?: boolean;
   turno_tarde?: boolean;
   turno_noite?: boolean;
+  horas_extras_dia?: number;
 }
 
 export interface Produto {
@@ -114,6 +116,7 @@ export interface OrdemProducao {
   prioridade: PrioridadeOrdem;
   data_inicio_planejada?: string;
   data_fim_planejada?: string;
+  fim_manual?: boolean;
   data_inicio_real?: string;
   data_fim_real?: string;
   observacoes?: string;
@@ -131,6 +134,7 @@ export interface OrdemCreate {
   prioridade?: PrioridadeOrdem;
   data_inicio_planejada?: string;
   data_fim_planejada?: string;
+  fim_manual?: boolean;
   observacoes?: string;
 }
 
@@ -152,6 +156,16 @@ export interface OrdemGantt {
   quantidade_produzida: number;
   percentual_conclusao: number;
   observacoes?: string;
+  etapa_id?: number;
+  etapa_seq?: number;
+  etapa_total?: number;
+  etapa_nome?: string;
+  ordem_maquina_id?: number;
+  ordem_data_inicio?: string;
+  ordem_data_fim?: string;
+  ordem_fim_calculado?: string;
+  ordem_fim_manual?: boolean;
+  falta_capacidade_dias?: number;
 }
 
 // --- Carga Máquina Dashboard ---

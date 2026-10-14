@@ -4,6 +4,7 @@ import { Plus, Search, Pencil, Trash2, AlertTriangle, X } from 'lucide-react';
 import { ordemService } from '../services/ordemService';
 import { maquinaService } from '../services/maquinaService';
 import { produtoService } from '../services/produtoService';
+import { useSugestaoFim } from '../hooks/useSugestaoFim';
 import { format } from 'date-fns';
 import type { OrdemProducao, OrdemCreate } from '../types';
 
@@ -39,8 +40,21 @@ function OrdemForm({ initial, onSave, onCancel, error }: {
     prioridade: initial?.prioridade ?? 'normal',
     data_inicio_planejada: initial?.data_inicio_planejada ?? '',
     data_fim_planejada: initial?.data_fim_planejada ?? '',
+    fim_manual: initial?.fim_manual ?? false,
     observacoes: initial?.observacoes ?? '',
   });
+
+  const sugestao = useSugestaoFim(
+    {
+      produto_id: form.produto_id,
+      maquina_id: form.maquina_id,
+      quantidade: form.quantidade_planejada,
+      data_inicio: form.data_inicio_planejada,
+    },
+    (fim) => setForm(f => (f.fim_manual ? f : { ...f, data_fim_planejada: fim })),
+    true,
+    !!initial?.numero,
+  );
 
   const handleProdutoChange = (novoId: number) => {
     const prod = produtos.find(p => p.id === novoId);
@@ -148,9 +162,28 @@ function OrdemForm({ initial, onSave, onCancel, error }: {
           <input
             type="datetime-local"
             value={form.data_fim_planejada?.slice(0, 16) ?? ''}
-            onChange={e => setForm(f => ({ ...f, data_fim_planejada: e.target.value }))}
+            onChange={e => setForm(f => ({ ...f, data_fim_planejada: e.target.value, fim_manual: true }))}
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          {sugestao.info && (
+            <p className="mt-1 text-[11px] text-gray-500">
+              Fim sugerido: {sugestao.info.horas.toLocaleString('pt-BR')} h de produção a {sugestao.info.pcs_hora} pçs/h,
+              com {sugestao.info.horas_por_dia.toLocaleString('pt-BR')} h/dia nesta linha. Pode ajustar.
+            </p>
+          )}
+          {sugestao.erro && <p className="mt-1 text-[11px] text-amber-600">{sugestao.erro}</p>}
+          {form.fim_manual && (
+            <p className="mt-1 text-[11px] text-gray-500">
+              Fim ajustado manualmente.{' '}
+              <button
+                type="button"
+                className="font-medium text-blue-600 hover:underline"
+                onClick={() => { setForm(f => ({ ...f, fim_manual: false })); sugestao.recalcular(); }}
+              >
+                Usar cálculo automático
+              </button>
+            </p>
+          )}
         </div>
       </div>
 
@@ -381,6 +414,7 @@ export default function Ordens() {
                 produto_id: modal.ordem.produto_id,
                 maquina_id: modal.ordem.maquina_id,
                 quantidade_planejada: modal.ordem.quantidade_planejada,
+                fim_manual: modal.ordem.fim_manual,
                 prioridade: modal.ordem.prioridade,
                 data_inicio_planejada: modal.ordem.data_inicio_planejada,
                 data_fim_planejada: modal.ordem.data_fim_planejada,

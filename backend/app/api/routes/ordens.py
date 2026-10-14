@@ -5,7 +5,7 @@ from datetime import datetime
 from app.core.database import get_db
 from app.schemas.ordem import OrdemProducaoCreate, OrdemProducaoUpdate, OrdemProducaoResponse, OrdemGantt
 from app.models.models import StatusOrdem, PrioridadeOrdem
-from app.services import ordem_service
+from app.services import ordem_service, etapa_service
 
 router = APIRouter(prefix="/ordens", tags=["Ordens de Produção"])
 
@@ -45,6 +45,24 @@ def gantt_ordens(
         maquina_id=maquina_id,
         incluir_concluidas=incluir_concluidas,
     )
+
+
+@router.get("/sugerir-fim")
+def sugerir_fim_ordem(
+    produto_id: int,
+    quantidade: float,
+    maquina_id: int,
+    data_inicio: datetime,
+    db: Session = Depends(get_db),
+):
+    """Data de fim sugerida pelas pecas/hora do roteiro e pelos turnos da linha."""
+    r = etapa_service.sugerir_fim(db, produto_id, quantidade, maquina_id, data_inicio)
+    if r is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Sem taxa (pcs/h) cadastrada no roteiro do produto para a operacao desta linha.",
+        )
+    return r
 
 
 @router.get("/{ordem_id}", response_model=OrdemProducaoResponse)

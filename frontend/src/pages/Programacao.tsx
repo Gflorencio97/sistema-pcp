@@ -19,6 +19,7 @@ import { ordemService } from '../services/ordemService';
 import { maquinaService } from '../services/maquinaService';
 import { produtoService } from '../services/produtoService';
 import GanttChart from '../components/GanttChart';
+import { useSugestaoFim } from '../hooks/useSugestaoFim';
 import GanttModalDetalhes from '../components/GanttModalDetalhes';
 import type { OrdemGantt, OrdemCreate } from '../types';
 
@@ -50,9 +51,20 @@ export default function Programacao() {
     prioridade: 'normal',
     data_inicio_planejada: format(new Date(), "yyyy-MM-dd'T'07:00"),
     data_fim_planejada: format(addDays(new Date(), 5), "yyyy-MM-dd'T'17:00"),
+    fim_manual: false,
     observacoes: '',
   });
   const [erroNovaOrdem, setErroNovaOrdem] = useState<string | null>(null);
+  const sugestao = useSugestaoFim(
+    {
+      produto_id: novaOrdemForm.produto_id,
+      maquina_id: novaOrdemForm.maquina_id,
+      quantidade: novaOrdemForm.quantidade_planejada,
+      data_inicio: novaOrdemForm.data_inicio_planejada,
+    },
+    (fim) => setNovaOrdemForm((f) => (f.fim_manual ? f : { ...f, data_fim_planejada: fim })),
+    modalNovaOrdem,
+  );
 
   const dataInicioIso = format(dataBase, "yyyy-MM-dd'T'00:00:00");
   const dataFimIso = format(addDays(dataBase, diasVisiveis), "yyyy-MM-dd'T'23:59:59");
@@ -120,11 +132,13 @@ export default function Programacao() {
 
   // Métricas do Topo
   const metricas = useMemo(() => {
-    const total = ordensFiltradas.length;
-    const emAndamento = ordensFiltradas.filter((o) => o.status === 'em_andamento').length;
-    const planejadas = ordensFiltradas.filter((o) => o.status === 'planejada').length;
-    const concluidas = ordensFiltradas.filter((o) => o.status === 'concluida').length;
-    const urgentes = ordensFiltradas.filter((o) => o.prioridade === 'urgente' || o.prioridade === 'alta').length;
+    // uma OP pode aparecer em varias linhas (etapas): contar cada OP uma vez
+    const unicas = Array.from(new Map(ordensFiltradas.map((o) => [o.id, o])).values());
+    const total = unicas.length;
+    const emAndamento = unicas.filter((o) => o.status === 'em_andamento').length;
+    const planejadas = unicas.filter((o) => o.status === 'planejada').length;
+    const concluidas = unicas.filter((o) => o.status === 'concluida').length;
+    const urgentes = unicas.filter((o) => o.prioridade === 'urgente' || o.prioridade === 'alta').length;
 
     // Checar conflitos de máquina
     let maquinasComConflito = 0;
@@ -163,6 +177,7 @@ export default function Programacao() {
         prioridade: 'normal',
         data_inicio_planejada: format(new Date(), "yyyy-MM-dd'T'07:00"),
         data_fim_planejada: format(addDays(new Date(), 5), "yyyy-MM-dd'T'17:00"),
+        fim_manual: false,
         observacoes: '',
       });
       setErroNovaOrdem(null);
@@ -387,7 +402,7 @@ export default function Programacao() {
                 <option value="FUR_07">Furação 07</option>
                 <option value="BRUNIMENTO">Brunimento</option>
                 <option value="ROLETAMENTO">Roletamento</option>
-                <option value="LAV_INSP">Lavagem & Inspeção</option>
+                <option value="LAV_INSP">Inspeção</option>
               </select>
             </div>
 
@@ -617,10 +632,29 @@ export default function Programacao() {
                     type="datetime-local"
                     value={novaOrdemForm.data_fim_planejada}
                     onChange={(e) =>
-                      setNovaOrdemForm((f) => ({ ...f, data_fim_planejada: e.target.value }))
+                      setNovaOrdemForm((f) => ({ ...f, data_fim_planejada: e.target.value, fim_manual: true }))
                     }
                     className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
                   />
+          {sugestao.info && (
+            <p className="mt-1 text-[11px] text-gray-500">
+              Fim sugerido: {sugestao.info.horas.toLocaleString('pt-BR')} h de produção a {sugestao.info.pcs_hora} pçs/h,
+              com {sugestao.info.horas_por_dia.toLocaleString('pt-BR')} h/dia nesta linha. Pode ajustar.
+            </p>
+          )}
+          {sugestao.erro && <p className="mt-1 text-[11px] text-amber-600">{sugestao.erro}</p>}
+          {novaOrdemForm.fim_manual && (
+            <p className="mt-1 text-[11px] text-gray-500">
+              Fim ajustado manualmente.{' '}
+              <button
+                type="button"
+                className="font-medium text-blue-600 hover:underline"
+                onClick={() => { setNovaOrdemForm((f) => ({ ...f, fim_manual: false })); sugestao.recalcular(); }}
+              >
+                Usar cálculo automático
+              </button>
+            </p>
+          )}
                 </div>
               </div>
 

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Fragment } from 'react';
 import {
   format,
   addDays,
@@ -31,7 +31,7 @@ const SETORES_PADRAO = [
   { codigo: 'FUR_07', nome: 'Furação 07' },
   { codigo: 'BRUNIMENTO', nome: 'Brunimento' },
   { codigo: 'ROLETAMENTO', nome: 'Roletamento' },
-  { codigo: 'LAV_INSP', nome: 'Lavagem & Inspeção' },
+  { codigo: 'LAV_INSP', nome: 'Inspeção' },
 ];
 
 const PRIORIDADE_CORES: Record<PrioridadeOrdem, { bg: string; border: string; text: string }> = {
@@ -394,9 +394,12 @@ export default function GanttChart({
                                   const topOffset = ehConflito ? (idx % 2 === 0 ? 4 : 28) : 8;
                                   const barHeight = ehConflito ? 22 : 36;
 
+                                  // Dias que faltam de capacidade nesta linha para cumprir as datas digitadas
+                                  const atrasoDias = ordem.falta_capacidade_dias ?? 0;
+
                                   return (
+                                    <Fragment key={`${ordem.id}-${ordem.etapa_id ?? 0}`}>
                                     <div
-                                      key={ordem.id}
                                       onClick={() => onSelecionarOrdem(ordem)}
                                       style={{
                                         left: pos.leftPx,
@@ -408,7 +411,7 @@ export default function GanttChart({
                                       className={`absolute z-10 flex items-center justify-between overflow-hidden rounded-lg px-2 text-white shadow-xs cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-md hover:z-20 ${cor.bg} ${statusEstilo.borderStyle} ${
                                         ehConflito ? 'ring-2 ring-rose-400 ring-offset-1' : ''
                                       }`}
-                                      title={`[${ordem.numero}] ${ordem.produto_nome}\nInício: ${format(new Date(ordem.data_inicio_planejada!), 'dd/MM/yyyy')}\nFim: ${format(new Date(ordem.data_fim_planejada!), 'dd/MM/yyyy')} (${pos.durDias} dias)\nProgresso: ${ordem.percentual_conclusao}% (${ordem.quantidade_produzida}/${ordem.quantidade_planejada} pçs)\nPrioridade: ${ordem.prioridade.toUpperCase()}\nStatus: ${ordem.status.toUpperCase()}\n\nClique para detalhes ou reagendar`}
+                                      title={`[${ordem.numero}]${ordem.etapa_nome ? ` Etapa ${ordem.etapa_seq}/${ordem.etapa_total}: ${ordem.etapa_nome}` : ''} ${ordem.produto_nome}\nInício: ${format(new Date(ordem.data_inicio_planejada!), 'dd/MM/yyyy')}\nFim: ${format(new Date(ordem.data_fim_planejada!), 'dd/MM/yyyy')} (${pos.durDias} dias)\nProgresso: ${ordem.percentual_conclusao}% (${ordem.quantidade_produzida}/${ordem.quantidade_planejada} pçs)\nPrioridade: ${ordem.prioridade.toUpperCase()}\nStatus: ${ordem.status.toUpperCase()}\n\nClique para detalhes ou reagendar`}
                                     >
                                       {/* Barra de progresso semitransparente interna */}
                                       <div
@@ -422,6 +425,11 @@ export default function GanttChart({
                                           <AlertTriangle className="h-3 w-3 shrink-0 text-amber-200 animate-bounce" />
                                         )}
                                         <span className="tracking-tight">{ordem.numero}</span>
+                                        {ordem.etapa_nome && (
+                                          <span className="font-normal opacity-90">
+                                            · {ordem.etapa_seq}/{ordem.etapa_total} {ordem.etapa_nome}
+                                          </span>
+                                        )}
                                         {pos.widthPx > 110 && ordem.produto_codigo && (
                                           <span className="font-mono text-[10px] font-normal opacity-90">
                                             • {ordem.produto_codigo}
@@ -434,6 +442,15 @@ export default function GanttChart({
                                         )}
                                       </div>
 
+                                      {atrasoDias > 0 && (
+                                        <span
+                                          className="relative z-10 shrink-0 text-[10px] font-extrabold bg-rose-600 text-white rounded px-1 ml-1"
+                                          title={`Faltam ${atrasoDias} dia(s) de capacidade nesta linha para cumprir as datas digitadas (ou divida a OP entre linhas)`}
+                                        >
+                                          faltam {atrasoDias}d
+                                        </span>
+                                      )}
+
                                       {/* Percentual no canto direito */}
                                       {pos.widthPx > 80 && (
                                         <span className="relative z-10 shrink-0 text-[10px] font-extrabold opacity-95 bg-black/20 rounded px-1 ml-1">
@@ -441,6 +458,7 @@ export default function GanttChart({
                                         </span>
                                       )}
                                     </div>
+                                    </Fragment>
                                   );
                                 })}
                               </div>
@@ -471,7 +489,7 @@ export default function GanttChart({
 
                       return (
                         <div
-                          key={ordem.id}
+                          key={`${ordem.id}-${ordem.etapa_id ?? 0}`}
                           className="flex items-stretch hover:bg-amber-50/30 group transition-colors min-h-[50px]"
                         >
                           <div className="w-[280px] shrink-0 sticky left-0 z-10 bg-white group-hover:bg-amber-50/40 border-r border-gray-200 px-3 py-2 flex flex-col justify-center">
@@ -541,7 +559,7 @@ export default function GanttChart({
 
                     return (
                       <div
-                        key={ordem.id}
+                        key={`${ordem.id}-${ordem.etapa_id ?? 0}`}
                         className="flex items-stretch hover:bg-gray-50 group transition-colors min-h-[58px]"
                       >
                         {/* Coluna Fixa da Ordem */}

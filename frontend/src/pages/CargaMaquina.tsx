@@ -105,8 +105,11 @@ export default function CargaMaquina() {
   const queryClient = useQueryClient();
   const [diasUteis, setDiasUteis] = useState<number>(22);
   const [horasDia, setHorasDia] = useState<number>(8.8);
-  const [filtrarMes, setFiltrarMes] = useState<boolean>(false);
-  const [mes, setMes] = useState<string>(new Date().toISOString().slice(0, 7));
+  const [filtrarMes, setFiltrarMes] = useState<boolean>(true); // abre no mês atual; trocar para 'Toda a fila' quando precisar
+  const [mes, setMes] = useState<string>(() => {
+    const h = new Date();
+    return `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, '0')}`;
+  });
   const mesAtivo = filtrarMes && mes ? mes : undefined;
   const [abaAtiva, setAbaAtiva] = useState<'maquina' | 'homem_maquina'>('homem_maquina');
   const [modalAjusteMODAberto, setModalAjusteMODAberto] = useState(false);

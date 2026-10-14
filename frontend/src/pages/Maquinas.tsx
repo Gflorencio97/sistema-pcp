@@ -26,6 +26,7 @@ function MaquinaForm({ initial, onSave, onCancel }: {
     turno_manha: initial?.turno_manha ?? true,
     turno_tarde: initial?.turno_tarde ?? true,
     turno_noite: initial?.turno_noite ?? false,
+    horas_extras_dia: initial?.horas_extras_dia ?? 0,
   });
 
   return (
@@ -72,6 +73,23 @@ function MaquinaForm({ initial, onSave, onCancel }: {
             </label>
           ))}
         </div>
+      </div>
+      <div>
+        <label className="mb-1 block text-xs font-medium text-gray-600">
+          Horas extras (HE) disponíveis por dia
+        </label>
+        <input
+          type="number"
+          min={0}
+          max={8}
+          step={0.5}
+          value={form.horas_extras_dia ?? 0}
+          onChange={e => setForm(f => ({ ...f, horas_extras_dia: Number(e.target.value) }))}
+          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <p className="mt-1 text-[11px] text-gray-400">
+          Somadas depois do último turno. 1º turno = 8,8 h • 2º turno = 8,3 h.
+        </p>
       </div>
       <div className="flex justify-end gap-2 pt-2">
         <button onClick={onCancel} className="rounded-lg border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50">Cancelar</button>

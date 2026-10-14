@@ -33,3 +33,4 @@ scratch/
 backend/pcp.db
 backend/pcp.db-*
 pcp.db
+backend/pcp_antes_migracao_*.db

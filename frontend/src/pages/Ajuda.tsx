@@ -508,10 +508,10 @@ export default function Ajuda() {
 
               <div className="rounded-xl border border-gray-200 p-4 space-y-2">
                 <span className="font-bold text-slate-700 uppercase tracking-wider text-[11px] block">
-                  6. Lavagem & Inspeção (`LAV_INSP`) • 2 Máquinas
+                  6. Inspeção (`LAV_INSP`) • 1 Máquina
                 </span>
                 <p className="text-gray-500 text-[11px]">
-                  Linha de Lavagem (`LAV-01`), Linha de Inspeção (`INSP-01`).
+                  Linha de Inspeção (`INSP-01`).
                 </p>
                 <span className="text-[10px] text-gray-400">Capacidade: 17,15 h/dia cada (754,6 h/mês no setor)</span>
               </div>

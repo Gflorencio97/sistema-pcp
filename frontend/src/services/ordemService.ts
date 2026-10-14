@@ -8,6 +8,14 @@ export const ordemService = {
   gantt: (params?: { data_inicio?: string; data_fim?: string; maquina_id?: number; incluir_concluidas?: boolean }) =>
     api.get<OrdemGantt[]>('/ordens/gantt', { params }).then(r => r.data),
 
+  sugerirFim: (params: { produto_id: number; maquina_id: number; quantidade: number; data_inicio: string }) =>
+    api
+      .get<{ data_inicio: string; data_fim: string; horas_necessarias: number; pcs_hora: number; horas_por_dia: number }>(
+        '/ordens/sugerir-fim',
+        { params },
+      )
+      .then(r => r.data),
+
   obter: (id: number) =>
     api.get<OrdemProducao>(`/ordens/${id}`).then(r => r.data),
 

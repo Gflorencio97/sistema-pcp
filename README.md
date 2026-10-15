@@ -6,6 +6,12 @@ O sistema substitui planilhas manuais por uma plataforma visual e reativa, permi
 
 ---
 
+## 📚 Documentação
+
+Documentação completa em [`docs/`](docs/README.md): visão geral e regras, manual de uso, cálculos, arquitetura, banco de dados, API, operação do servidor e desenvolvimento.
+
+---
+
 ## ⚡ Regras de Negócio da Fábrica
 
 - **Jornada de Trabalho:** 1º turno = **8,8 horas úteis/dia** por máquina (valor padrão, ajustável por máquina e na tela de Carga Máquina).
@@ -16,7 +22,7 @@ O sistema substitui planilhas manuais por uma plataforma visual e reativa, permi
   3. `FUR_07` (Furação 0,7)
   4. `BRUNIMENTO` (Brunideiras)
   5. `ROLETAMENTO` (Roletamento)
-  6. `LAV_INSP` (Lavagem e Inspeção Final)
+  6. `LAV_INSP` (Inspeção)
 - **Roteiro por peça:** cada produto tem uma taxa de produção (peças/hora) e uma máquina padrão para cada operação. Se for digitado um valor menor que 1, o sistema entende como horas por peça e converte para peças/hora.
 - **Matéria-Prima:** Toda peça acabada possui seu respectivo `codigo_fundido` vinculado.
 - **Mão de Obra Direta (MOD):** cada setor tem quantidade de operadores e jornada, para comparar a capacidade das máquinas com a disponibilidade de pessoas (Homem x Máquina).

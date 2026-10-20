@@ -7,7 +7,7 @@ Runbook para quem administra o Windows Server da TI.
 | Pasta do sistema | `C:\PCP-Evoluttion` |
 | Endereço | `http://192.168.15.5:8085` |
 | Porta | 8085 (liberada no firewall pelo instalador) |
-| Tarefa do sistema | `PCP-Evoluttion-Servidor` (ao iniciar o Windows, usuário SYSTEM) |
+| Tarefa do sistema | `PCP-Evoluttion-Servidor` (30 s depois do boot, usuário SYSTEM, **sem limite de tempo** e com reinício automático) |
 | Tarefa de backup | `PCP-Evoluttion-Backup` (todo dia, 23:00) |
 | Banco | `C:\PCP-Evoluttion\backend\pcp.db` |
 | Backups | `C:\PCP-Backups` (30 dias) |
@@ -89,6 +89,21 @@ schtasks /query /tn "PCP-Evoluttion-Servidor" /v /fo list   # estado e último r
 
 Para ver o erro de inicialização, rode manualmente `servidor_windows\iniciar_servidor.bat` e leia a tela.
 
+## Verificar a tarefa agendada
+
+```powershell
+$t = Get-ScheduledTask -TaskName "PCP-Evoluttion-Servidor"
+$t.Settings | Select-Object ExecutionTimeLimit, RestartCount
+$t.Actions[0].Execute
+Get-Content C:\PCP-Evoluttion\servidor.log -Tail 8
+```
+
+Esperado: `ExecutionTimeLimit` = `PT0S`, `RestartCount` = `99`, ação terminando em `iniciar_em_segundo_plano.bat` e o log mostrando o Uvicorn na porta 8085.
+
+Como funciona: a tarefa roda `servidor_windows\iniciar_em_segundo_plano.bat`, que mantém o PCP em um laço. Se o processo cair, ele é reiniciado em 15 segundos, e tudo é gravado em `servidor.log` (guardado como `servidor.antigo.log` ao passar de ~20 MB).
+
+> **Atenção:** tarefas criadas por versões antigas do instalador tinham limite de 72 h e nenhum reinício, e o PCP parava sozinho depois de 3 dias. Se `ExecutionTimeLimit` aparecer como `PT72H`, recrie a tarefa executando `instalar_servico_automatico.bat` como administrador.
+
 ## Problemas conhecidos e soluções
 
 | Sintoma | Causa provável | Solução |
@@ -96,12 +111,11 @@ Para ver o erro de inicialização, rode manualmente `servidor_windows\iniciar_s
 | "Erro ao conectar com a API" ao abrir a tela, em outros PCs | Bundle compilado com `localhost` | Garantir `frontend/.env.production` com `VITE_API_URL=/api/v1`, `npm run build` e commitar o `dist`. |
 | Outro PC não abre o link | Rede/VLAN diferente, proxy do navegador, firewall | `Test-NetConnection 192.168.15.5 -Port 8085` no PC; checar proxy e a regra do firewall. |
 | `git pull` falha com "Rename ... main.lock failed" | Antivírus ou outro Git segurando o arquivo | Encerrar processos `git`, apagar `.git\refs\remotes\origin\main.lock`, excluir a pasta do antivírus e repetir. |
-| Servidor reiniciou/caiu a energia e o PCP não voltou | Tarefa sem reinício automático; limite de 72 h | Rodar `schtasks /run /tn "PCP-Evoluttion-Servidor"`. Correção definitiva em aberto (veja abaixo). |
+| O PCP parou sozinho depois de alguns dias | Tarefa criada pela versão antiga do instalador (limite de 72 h, sem reinício) | Subir com `schtasks /run /tn "PCP-Evoluttion-Servidor"` e recriar a tarefa com `instalar_servico_automatico.bat` (veja "Verificar a tarefa agendada"). |
 | Porta 8085 em uso | Outro serviço na porta | Descobrir com `Get-NetTCPConnection -LocalPort 8085` e ajustar a porta em `iniciar_servidor.bat`, na regra do firewall e nos atalhos. |
 | Peça nova "não salva" | Mensagem de erro genérica na tela | Ver a resposta real em F12 → Rede (400 duplicado, 422 validação, 500 servidor). |
 
 ## Pendências de operação
 
-- **Reinício automático:** a tarefa foi criada com os padrões do Windows (limite de execução de 72 h e sem reinício em falha). Recriá-la sem limite, com reinício e com o wrapper que grava `servidor.log` evita que o sistema pare sozinho.
 - **Backup externo:** mover o destino do backup para fora do disco do servidor.
 - **IP fixo:** pedir à TI de rede reserva de IP para `192.168.15.5`, para o link não mudar.

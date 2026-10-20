@@ -45,7 +45,7 @@ if %errorLevel% equ 0 (
     echo  O PCP agora inicia sozinho com o Windows Server 24h.
     echo ========================================================
     echo.
-    echo Deseja iniciar o servico agora mesmo? (S/N)
+    echo Deseja iniciar o servico agora mesmo? [S/N]
     set /p RESPOSTA=Opcao: 
     if /i "%RESPOSTA%"=="S" (
         echo [*] Iniciando servico...

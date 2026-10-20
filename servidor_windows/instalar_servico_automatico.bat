@@ -22,7 +22,7 @@ if %errorLevel% neq 0 (
 )
 
 cd /d "%~dp0"
-set SCRIPT_PATH=%~dp0iniciar_servidor.bat
+set SCRIPT_PATH=%~dp0iniciar_em_segundo_plano.bat
 
 echo [*] Liberando porta 8085 no Firewall do Windows Server...
 netsh advfirewall firewall delete rule name="PCP Evoluttion (Porta 8085)" >nul 2>&1
@@ -31,7 +31,7 @@ echo [OK] Porta 8085 liberada no Firewall para a rede interna.
 
 echo.
 echo [*] Registrando tarefa "PCP-Evoluttion-Servidor" no Agendador do Windows...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$action = New-ScheduledTaskAction -Execute '%SCRIPT_PATH%'; $trigger = New-ScheduledTaskTrigger -AtStartup; Register-ScheduledTask -TaskName 'PCP-Evoluttion-Servidor' -Action $action -Trigger $trigger -User 'SYSTEM' -RunLevel Highest -Force"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$action = New-ScheduledTaskAction -Execute '%SCRIPT_PATH%'; $trigger = New-ScheduledTaskTrigger -AtStartup; $trigger.Delay = 'PT30S'; $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 99 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew; $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest; Register-ScheduledTask -TaskName 'PCP-Evoluttion-Servidor' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force"
 
 if %errorLevel% neq 0 (
     echo [!] Tentando registrar via schtasks...

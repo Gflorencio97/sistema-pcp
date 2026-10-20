@@ -1,4 +1,4 @@
-import { useState, useMemo, Fragment } from 'react';
+import { useState, useMemo, Fragment, type CSSProperties } from 'react';
 import {
   format,
   addDays,
@@ -39,6 +39,35 @@ const PRIORIDADE_CORES: Record<PrioridadeOrdem, { bg: string; border: string; te
   alta: { bg: 'bg-amber-500', border: 'border-amber-600', text: 'text-white' },
   normal: { bg: 'bg-blue-600', border: 'border-blue-700', text: 'text-white' },
   baixa: { bg: 'bg-slate-500', border: 'border-slate-600', text: 'text-white' },
+};
+
+// Cor da barra = processo (operação). A prioridade alta/urgente vira uma faixa amarela na lateral.
+const PROCESSO_CORES: Record<string, string> = {
+  USINAGEM: '#2563EB',
+  FUR_INC: '#0D9488',
+  FUR_07: '#7C3AED',
+  BRUNIMENTO: '#C2410C',
+  ROLETAMENTO: '#BE185D',
+  LAV_INSP: '#475569',
+};
+
+const PROCESSO_ROTULO: Record<string, string> = {
+  USINAGEM: 'Usinagem',
+  FUR_INC: 'Fur. incremental',
+  FUR_07: 'Fur. 0,7',
+  BRUNIMENTO: 'Brunimento',
+  ROLETAMENTO: 'Roletamento',
+  LAV_INSP: 'Inspeção',
+};
+
+const estiloBarra = (o: OrdemGantt): CSSProperties => {
+  const estilo: CSSProperties = {};
+  const cor = PROCESSO_CORES[o.operacao_codigo ?? ''];
+  if (cor) estilo.backgroundColor = cor;
+  if (o.prioridade === 'alta' || o.prioridade === 'urgente') {
+    estilo.boxShadow = 'inset 4px 0 0 #FACC15';
+  }
+  return estilo;
 };
 
 const STATUS_INDICATOR: Record<StatusOrdem, { borderStyle: string; badge: string }> = {
@@ -296,22 +325,26 @@ export default function GanttChart({
                       {/* Cabeçalho do Setor (Colapsável) */}
                       <div
                         onClick={() => toggleSetor(setor.codigo)}
-                        className="flex items-center bg-gray-50/90 px-4 py-2 border-y border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors"
+                        className="flex items-center bg-slate-800 px-4 py-2 border-y border-slate-900 cursor-pointer hover:bg-slate-700 transition-colors"
                       >
                         <div className="w-[280px] shrink-0 sticky left-0 z-10 flex items-center gap-2">
                           {isAberto ? (
-                            <ChevronDown className="h-4 w-4 text-gray-500" />
+                            <ChevronDown className="h-4 w-4 text-slate-300" />
                           ) : (
-                            <ChevronRight className="h-4 w-4 text-gray-500" />
+                            <ChevronRight className="h-4 w-4 text-slate-300" />
                           )}
-                          <span className="text-xs font-bold uppercase tracking-wider text-gray-800">
+                          <span
+                            className="inline-block h-3 w-3 rounded-sm"
+                            style={{ backgroundColor: PROCESSO_CORES[setor.codigo] }}
+                          />
+                          <span className="text-xs font-bold uppercase tracking-wider text-white">
                             {setor.nome}
                           </span>
-                          <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-semibold text-gray-700">
+                          <span className="rounded-full bg-slate-600 px-2 py-0.5 text-[10px] font-semibold text-slate-100">
                             {maquinasDoSetor.length} máquinas
                           </span>
                           {totalOpsSetor > 0 && (
-                            <span className="rounded-full bg-blue-100 text-blue-800 px-2 py-0.5 text-[10px] font-bold">
+                            <span className="rounded-full bg-sky-200 text-sky-900 px-2 py-0.5 text-[10px] font-bold">
                               {totalOpsSetor} OP{totalOpsSetor > 1 ? 's' : ''}
                             </span>
                           )}
@@ -407,6 +440,7 @@ export default function GanttChart({
                                         top: topOffset,
                                         height: barHeight,
                                         minWidth: 42,
+                                        ...estiloBarra(ordem),
                                       }}
                                       className={`absolute z-10 flex items-center justify-between overflow-hidden rounded-lg px-2 text-white shadow-xs cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-md hover:z-20 ${cor.bg} ${statusEstilo.borderStyle} ${
                                         ehConflito ? 'ring-2 ring-rose-400 ring-offset-1' : ''
@@ -607,6 +641,7 @@ export default function GanttChart({
                                 left: pos.leftPx,
                                 width: pos.widthPx,
                                 minWidth: 42,
+                                ...estiloBarra(ordem),
                               }}
                               className={`absolute z-10 flex h-9 items-center justify-between overflow-hidden rounded-lg px-2 text-white shadow-xs cursor-pointer transition-all hover:scale-[1.01] hover:shadow-md ${cor.bg} ${statusEstilo.borderStyle}`}
                               title={`${ordem.numero} — ${ordem.produto_nome}\n${pos.durDias} dias (${ordem.quantidade_planejada} pçs)`}
@@ -637,15 +672,19 @@ export default function GanttChart({
 
       {/* RODAPÉ DO GANTT COM LEGENDA RICA */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-t border-gray-200 bg-gray-50/80 px-4 py-3 text-xs text-gray-600">
-        {/* Prioridades */}
-        <div className="flex items-center gap-3">
-          <span className="font-semibold text-gray-700">Prioridade:</span>
-          {Object.entries(PRIORIDADE_CORES).map(([p, cor]) => (
-            <div key={p} className="flex items-center gap-1.5">
-              <div className={`h-3 w-3 rounded-full ${cor.bg}`} />
-              <span className="capitalize">{p}</span>
+        {/* Processos (cor da barra) e prioridade (faixa lateral) */}
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="font-semibold text-gray-700">Processo:</span>
+          {Object.entries(PROCESSO_CORES).map(([cod, cor]) => (
+            <div key={cod} className="flex items-center gap-1.5">
+              <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: cor }} />
+              <span>{PROCESSO_ROTULO[cod]}</span>
             </div>
           ))}
+          <span className="ml-2 flex items-center gap-1.5">
+            <span className="h-3 w-4 rounded-sm bg-slate-400" style={{ boxShadow: 'inset 3px 0 0 #FACC15' }} />
+            <span>Faixa amarela = prioridade alta ou urgente</span>
+          </span>
         </div>
 
         {/* Status */}

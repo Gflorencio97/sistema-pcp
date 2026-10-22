@@ -17,14 +17,14 @@ class RoteiroItemCreate(RoteiroItemBase):
 
 
 class RoteiroItemUpdate(BaseModel):
-    pcs_hora: Optional[float] = None
+    pcs_hora: Optional[float] = Field(None, ge=0, le=100_000)
     maquina_id: Optional[int] = None
     ativo: Optional[bool] = None
 
 
 class RoteiroSalvarItem(BaseModel):
     operacao_codigo: str
-    pcs_hora: Optional[float] = None
+    pcs_hora: Optional[float] = Field(None, ge=0, le=100_000)
     maquina_id: Optional[int] = None
     ativo: bool = True
 
@@ -50,7 +50,7 @@ class RoteiroItemResponse(RoteiroItemBase):
 # Schema para o cálculo de horas de um pedido
 class CalculoHorasRequest(BaseModel):
     produto_id: int
-    quantidade: float = Field(..., gt=0, description="Quantidade de peças do pedido")
+    quantidade: float = Field(..., gt=0, le=10_000_000, description="Quantidade de peças do pedido")
 
 
 class CalculoOperacao(BaseModel):

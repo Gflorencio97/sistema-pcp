@@ -62,13 +62,13 @@ class CargaMaquinaDashboardResponse(BaseModel):
 # Para simular a entrada de novos pedidos na capacidade
 class ItemSimulacao(BaseModel):
     produto_id: int
-    quantidade: float = Field(..., gt=0)
+    quantidade: float = Field(..., gt=0, le=10_000_000)
 
 
 class SimulacaoCargaRequest(BaseModel):
-    dias_uteis: Optional[int] = 22
-    horas_dia: Optional[float] = 8.8
-    pedidos: List[ItemSimulacao]
+    dias_uteis: Optional[int] = Field(22, ge=1, le=31)
+    horas_dia: Optional[float] = Field(8.8, ge=1, le=24)
+    pedidos: List[ItemSimulacao] = Field(..., max_length=200)
 
 
 # Schemas para Gestão de Mão de Obra Direta (MOD)
@@ -87,7 +87,7 @@ class SetorMODResponse(BaseModel):
 
 class SetorMODUpdate(BaseModel):
     operacao_codigo: str
-    quantidade_operadores: float = Field(..., ge=0)
+    quantidade_operadores: float = Field(..., ge=0, le=1000)
     horas_dia_operador: Optional[float] = Field(8.8, ge=1, le=24)
     observacoes: Optional[str] = None
 

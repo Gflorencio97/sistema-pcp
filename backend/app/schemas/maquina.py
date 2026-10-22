@@ -12,8 +12,8 @@ class MaquinaBase(BaseModel):
     descricao: Optional[str] = None
     setor: Optional[str] = Field(None, max_length=100)
     operacao_codigo: Optional[str] = Field(None, max_length=50, description="Operação da fábrica que esta máquina executa")
-    horas_por_dia: Optional[float] = Field(default=17.15, ge=0, description="Horas produtivas disponíveis por dia")
-    capacidade_hora: Optional[float] = Field(None, ge=0)
+    horas_por_dia: Optional[float] = Field(default=17.15, ge=0, le=24, description="Horas produtivas disponíveis por dia")
+    capacidade_hora: Optional[float] = Field(None, ge=0, le=1_000_000)
     status: StatusMaquina = StatusMaquina.ATIVA
     turno_manha: bool = True
     turno_tarde: bool = True
@@ -30,13 +30,13 @@ class MaquinaUpdate(BaseModel):
     descricao: Optional[str] = None
     setor: Optional[str] = None
     operacao_codigo: Optional[str] = None
-    horas_por_dia: Optional[float] = None
-    capacidade_hora: Optional[float] = None
+    horas_por_dia: Optional[float] = Field(None, ge=0, le=24)
+    capacidade_hora: Optional[float] = Field(None, ge=0, le=1_000_000)
     status: Optional[StatusMaquina] = None
     turno_manha: Optional[bool] = None
     turno_tarde: Optional[bool] = None
     turno_noite: Optional[bool] = None
-    horas_extras_dia: Optional[float] = None
+    horas_extras_dia: Optional[float] = Field(None, ge=0, le=8)
 
 
 class MaquinaResponse(MaquinaBase):

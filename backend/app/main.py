@@ -1,10 +1,13 @@
 import os
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
+from app.core.config import settings
 from app.core.database import Base, engine
-from app.api.routes import maquinas, produtos, ordens, roteiro, carga_maquina
+from app.core.security import autorizar_requisicao
+from app.api.routes import maquinas, produtos, ordens, roteiro, carga_maquina, auth, usuarios, auditoria
+from app.core import auditoria as _auditoria_eventos  # noqa: F401  (registra os eventos de auditoria)
 
 # Cria as tabelas no banco (em produção use Alembic)
 Base.metadata.create_all(bind=engine)
@@ -128,28 +131,77 @@ def _preencher_etapas():
 
 _preencher_etapas()
 
+
+def _admin_inicial():
+    from app.core.bootstrap import garantir_admin_inicial
+    garantir_admin_inicial()
+
+
+_admin_inicial()
+
+EM_PRODUCAO = settings.em_producao
+
 app = FastAPI(
     title="PCP - Planejamento e Controle da Produção",
     description="API para gestão de produção industrial: máquinas, produtos e programação.",
     version="1.0.0",
+    # Em producao a documentacao interativa fica desligada
+    docs_url=None if EM_PRODUCAO else "/docs",
+    redoc_url=None if EM_PRODUCAO else "/redoc",
+    openapi_url=None if EM_PRODUCAO else "/openapi.json",
 )
 
-# CORS - permite qualquer computador na rede local acessar a API
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_origin_regex=r"^https?://.*",
-    allow_methods=["*"],
-    allow_headers=["*"],
+# CORS: em producao o frontend e servido pela mesma origem, entao nenhuma origem externa e liberada.
+# Em desenvolvimento libera so o Vite (http://localhost:5173).
+if not EM_PRODUCAO:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.CORS_ORIGENS_DEV,
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+_CSP = (
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+    "img-src 'self' data:; font-src 'self' data:; connect-src 'self'; "
+    "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 )
 
-# Registra os routers da API
-app.include_router(maquinas.router, prefix="/api/v1")
-app.include_router(produtos.router, prefix="/api/v1")
-app.include_router(ordens.router, prefix="/api/v1")
-app.include_router(roteiro.router, prefix="/api/v1")
-app.include_router(carga_maquina.router, prefix="/api/v1")
+
+@app.middleware("http")
+async def limitar_tamanho_da_requisicao(request: Request, call_next):
+    """Recusa corpos grandes (ou sem tamanho declarado) antes de processar."""
+    tamanho = request.headers.get("content-length")
+    if tamanho and tamanho.isdigit() and int(tamanho) > settings.MAX_BODY_BYTES:
+        return JSONResponse({"detail": "Requisição grande demais."}, status_code=413)
+    if "chunked" in request.headers.get("transfer-encoding", "").lower():
+        return JSONResponse({"detail": "Envie o tamanho do conteúdo (Content-Length)."}, status_code=411)
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def cabecalhos_de_seguranca(request: Request, call_next):
+    resposta = await call_next(request)
+    resposta.headers["X-Content-Type-Options"] = "nosniff"
+    resposta.headers["X-Frame-Options"] = "DENY"
+    resposta.headers["Referrer-Policy"] = "same-origin"
+    if EM_PRODUCAO:
+        resposta.headers["Content-Security-Policy"] = _CSP
+    if request.url.path.startswith("/api/"):
+        resposta.headers["Cache-Control"] = "no-store"   # dados autenticados nao ficam em cache
+    return resposta
+
+
+# Rotas de negocio: exigem login e aplicam a permissao por perfil (GET / POST-PUT-PATCH / DELETE)
+_protegido = [Depends(autorizar_requisicao)]
+for _r in (maquinas, produtos, ordens, roteiro, carga_maquina):
+    app.include_router(_r.router, prefix="/api/v1", dependencies=_protegido)
+
+# Login, usuarios (somente admin) e auditoria (somente admin)
+app.include_router(auth.router, prefix="/api/v1")
+app.include_router(usuarios.router, prefix="/api/v1")
+app.include_router(auditoria.router, prefix="/api/v1")
 
 
 @app.get("/api/v1/health", tags=["Health"])
@@ -161,24 +213,29 @@ def health():
 dist_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
 
 if os.path.exists(dist_path):
+    dist_real = os.path.realpath(dist_path)
     assets_path = os.path.join(dist_path, "assets")
     if os.path.exists(assets_path):
         app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
 
     @app.get("/{full_path:path}", include_in_schema=False)
     async def serve_spa(full_path: str):
-        # Rotas da API e docs não são interceptadas pelo SPA
-        if full_path.startswith("api/") or full_path in ["docs", "redoc", "openapi.json"]:
-            return None
-        file_path = os.path.join(dist_path, full_path)
-        if os.path.exists(file_path) and os.path.isfile(file_path):
-            return FileResponse(file_path)
-        index_file = os.path.join(dist_path, "index.html")
+        # Rotas da API e da documentacao nao sao interceptadas pelo SPA
+        if full_path.startswith("api/") or full_path in ("docs", "redoc", "openapi.json"):
+            raise HTTPException(status_code=404, detail="Não encontrado")
+        # So entrega arquivos que estejam DENTRO de frontend/dist (bloqueia '../' e links simbolicos)
+        alvo = os.path.realpath(os.path.join(dist_real, full_path))
+        try:
+            dentro = os.path.commonpath([dist_real, alvo]) == dist_real
+        except ValueError:
+            dentro = False
+        if dentro and os.path.isfile(alvo):
+            return FileResponse(alvo)
+        index_file = os.path.join(dist_real, "index.html")
         if os.path.exists(index_file):
             return FileResponse(index_file)
-        return {"status": "ok", "message": "PCP API rodando 🚀"}
+        return {"status": "ok", "message": "PCP API rodando"}
 else:
     @app.get("/", tags=["Health"])
     def root():
-        return {"status": "ok", "message": "PCP API rodando 🚀 (Frontend dist não encontrado)"}
-
+        return {"status": "ok", "message": "PCP API rodando (Frontend dist não encontrado)"}

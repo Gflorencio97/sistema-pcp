@@ -12,7 +12,7 @@ class OrdemProducaoBase(BaseModel):
     numero: str = Field(..., max_length=50)
     produto_id: int
     maquina_id: Optional[int] = None
-    quantidade_planejada: float = Field(..., gt=0)
+    quantidade_planejada: float = Field(..., gt=0, le=10_000_000)
     prioridade: PrioridadeOrdem = PrioridadeOrdem.NORMAL
     data_inicio_planejada: Optional[datetime] = None
     data_fim_planejada: Optional[datetime] = None
@@ -26,8 +26,8 @@ class OrdemProducaoCreate(OrdemProducaoBase):
 
 class OrdemProducaoUpdate(BaseModel):
     maquina_id: Optional[int] = None
-    quantidade_planejada: Optional[float] = None
-    quantidade_produzida: Optional[float] = None
+    quantidade_planejada: Optional[float] = Field(None, gt=0, le=10_000_000)
+    quantidade_produzida: Optional[float] = Field(None, ge=0, le=10_000_000)
     status: Optional[StatusOrdem] = None
     prioridade: Optional[PrioridadeOrdem] = None
     data_inicio_planejada: Optional[datetime] = None

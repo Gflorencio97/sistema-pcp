@@ -22,12 +22,16 @@ if %errorLevel% neq 0 (
 )
 
 cd /d "%~dp0"
+REM Faixa de rede que pode acessar o PCP (varias faixas separadas por virgula).
+REM Ex.: 192.168.15.0/24   ou   192.168.15.0/24,10.0.0.0/24
+set FAIXA_REDE=192.168.15.0/24
+
 set SCRIPT_PATH=%~dp0iniciar_em_segundo_plano.bat
 
 echo [*] Liberando porta 8085 no Firewall do Windows Server...
 netsh advfirewall firewall delete rule name="PCP Evoluttion (Porta 8085)" >nul 2>&1
-netsh advfirewall firewall add rule name="PCP Evoluttion (Porta 8085)" dir=in action=allow protocol=TCP localport=8085 profile=any >nul 2>&1
-echo [OK] Porta 8085 liberada no Firewall para a rede interna.
+netsh advfirewall firewall add rule name="PCP Evoluttion (Porta 8085)" dir=in action=allow protocol=TCP localport=8085 remoteip=%FAIXA_REDE% profile=any >nul 2>&1
+echo [OK] Porta 8085 liberada no Firewall somente para %FAIXA_REDE%.
 
 echo.
 echo [*] Registrando tarefa "PCP-Evoluttion-Servidor" no Agendador do Windows...

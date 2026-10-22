@@ -24,6 +24,12 @@ timeout /t 2 /nobreak >nul
 schtasks /run /tn "PCP-Evoluttion-Servidor" >nul 2>&1
 
 echo.
+echo [*] Aguardando o sistema iniciar...
+timeout /t 20 /nobreak >nul
+REM Primeira vez com login: o sistema cria o usuario admin e escreve a senha UMA vez no servidor.log
+powershell -NoProfile -Command "if (Test-Path 'servidor.log') { $r = Select-String -Path 'servidor.log' -Pattern 'PRIMEIRO ACESSO' -Context 1,6 | Select-Object -Last 1; if ($r) { Write-Host ''; Write-Host '>>> PRIMEIRO ACESSO: anote o login e a senha abaixo (aparecem so uma vez):' -ForegroundColor Yellow; $r.Context.PreContext + $r.Line + $r.Context.PostContext | ForEach-Object { Write-Host $_ } } }"
+
+echo.
 echo ========================================================
 echo  PCP ATUALIZADO COM SUCESSO NO SERVIDOR!
 echo ========================================================

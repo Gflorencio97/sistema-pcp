@@ -85,10 +85,12 @@ echo.
 echo  * Link para a Fabrica / Diretoria:
 echo      http://%IP_SRV%:%PORTA%
 echo.
-echo  * Painel API / Swagger:
-echo      http://%IP_SRV%:%PORTA%/docs
+echo  * Acesso: somente com login (a documentacao /docs fica desligada em producao)
 echo ========================================================
 echo.
+
+REM Modo producao: desliga /docs, restringe o CORS e ativa a politica de seguranca de conteudo
+set PCP_AMBIENTE=producao
 
 python -m uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port %PORTA%
 pause

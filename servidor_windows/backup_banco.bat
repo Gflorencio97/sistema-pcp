@@ -10,4 +10,10 @@ cd /d "%~dp0\.."
 echo [%date% %time%] Iniciando backup... >> backup.log
 call backend\venv\Scripts\activate
 python servidor_windows\backup_banco.py backend\pcp.db "%DESTINO%" %DIAS_RETENCAO% >> backup.log 2>&1
-echo [%date% %time%] Fim (codigo %errorlevel%) >> backup.log
+if errorlevel 1 goto falhou
+echo [%date% %time%] SUCESSO: backup concluido. >> backup.log
+exit /b 0
+
+:falhou
+echo [%date% %time%] FALHA: o backup NAO foi concluido. Veja as linhas acima. >> backup.log
+exit /b 1

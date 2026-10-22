@@ -6,7 +6,7 @@ Runbook para quem administra o Windows Server da TI.
 |---|---|
 | Pasta do sistema | `C:\PCP-Evoluttion` |
 | Endereço | `http://192.168.15.5:8085` |
-| Porta | 8085 (liberada no firewall pelo instalador) |
+| Porta | 8085 (firewall liberado só para a faixa `FAIXA_REDE`, padrão `192.168.15.0/24`) |
 | Tarefa do sistema | `PCP-Evoluttion-Servidor` (30 s depois do boot, usuário SYSTEM, **sem limite de tempo** e com reinício automático) |
 | Tarefa de backup | `PCP-Evoluttion-Backup` (todo dia, 23:00) |
 | Banco | `C:\PCP-Evoluttion\backend\pcp.db` |
@@ -39,6 +39,15 @@ Os comandos abaixo devem ser executados no **PowerShell como administrador**.
 
 O primeiro início cria o ambiente virtual Python e instala as dependências, e pode demorar alguns minutos.
 
+## Primeiro acesso (login)
+
+Na primeira inicialização com a versão que tem login, o sistema cria o usuário `admin` e escreve a senha **uma única vez** no `servidor.log`:
+
+```powershell
+Select-String -Path C:\PCP-Evoluttion\servidor.log -Pattern "PRIMEIRO ACESSO" -Context 1,6
+```
+O `atualizar_servidor.bat` mostra esse bloco ao final. A troca da senha é obrigatória no primeiro acesso. Detalhes, perfis e criação de usuários: [Segurança e acesso](09-seguranca-e-acesso.md).
+
 ## Atualização
 
 1. **Backup antes:**
@@ -60,7 +69,16 @@ Quando a versão trouxer migração de dados, o sistema cria sozinho `backend\pc
 
 > O destino padrão está no mesmo disco do banco. Para proteger contra falha de disco, aponte `DESTINO` para outro disco ou compartilhamento (e rode a tarefa com um usuário que tenha acesso a ele).
 
+## Verificar o backup
+
+```powershell
+.\servidor_windows\verificar_backup.ps1
+```
+Confere a idade e a integridade do último backup, o `backup.log` e a tarefa agendada. Termina com código 0 (ok) ou 1 (problema). O `backup.log` registra `SUCESSO` ou `FALHA` em cada execução.
+
 ## Restauração
+
+**Forma guiada:** `servidor_windows\restaurar_backup.bat` (como administrador). Lista os backups, pede `SIM`, para o sistema, guarda o banco atual em `backend\pcp_antes_restauracao_*.db`, restaura, confere a integridade e reinicia. A forma manual, passo a passo, é esta:
 
 1. Parar o sistema:
    ```powershell

@@ -35,9 +35,9 @@ O sistema roda 24h no Windows Server da TI. Qualquer computador na rede da empre
 
 👉 **http://192.168.15.5:8085**
 
-- Documentação da API: `http://192.168.15.5:8085/docs`
+- Documentação da API (Swagger): só em desenvolvimento (`http://localhost:8000/docs`); em produção fica desligada.
 - Verificação de saúde: `http://192.168.15.5:8085/api/v1/health`
-- O acesso é **somente pela rede interna** (sem login). Quem estiver em outra rede/VLAN precisa de rota liberada até o servidor na porta 8085.
+- O acesso exige **login** (usuário e senha) e é só pela rede interna: o firewall libera a porta 8085 apenas para a faixa `192.168.15.0/24` (configurável em `FAIXA_REDE`). Outra rede/VLAN precisa ser incluída.
 
 Instalação inicial no servidor: veja [`servidor_windows/COMO_INSTALAR_NO_SERVIDOR.md`](servidor_windows/COMO_INSTALAR_NO_SERVIDOR.md).
 
@@ -83,6 +83,19 @@ npm run dev
 ```
 
 No desenvolvimento, o frontend usa `frontend/.env.local` (`VITE_API_URL=http://localhost:8000/api/v1`). Esse arquivo não vai para o git.
+
+---
+
+## 🔐 Segurança e Acesso
+
+- **Login obrigatório** com usuário e senha (bcrypt) e sessão de 8 horas. Perfis: `admin` (tudo, inclusive usuários e auditoria), `editor` (PCP: cria e edita) e `visualizador` (só consulta). Só o `admin` exclui.
+- **Primeiro acesso:** na primeira execução sem usuários, o sistema cria o `admin` e escreve a senha **uma única vez** no `servidor.log` (ou usa `PCP_ADMIN_SENHA`). A troca é obrigatória no primeiro login.
+- **Auditoria:** quem criou, editou ou excluiu cada registro (com antes/depois e IP), além de logins e falhas. Consulta no menu **Auditoria** (admin).
+- **Servidor:** `/docs` desligado em produção, sem CORS, cabeçalhos de segurança, limite de tamanho, firewall só da rede local.
+- **Variáveis** (`backend/.env`, não versionado): `PCP_AMBIENTE`, `SECRET_KEY` (gerada se faltar), `PCP_ADMIN_SENHA`, `ACCESS_TOKEN_EXPIRE_MINUTES`.
+- **Backup:** diário às 23:00 com registro de sucesso/falha; `verificar_backup.ps1` confere e `restaurar_backup.bat` restaura.
+
+Detalhes, riscos que continuam e passo a passo: [`docs/09-seguranca-e-acesso.md`](docs/09-seguranca-e-acesso.md).
 
 ---
 

@@ -14,6 +14,7 @@ Acesso em produção (rede interna): **http://192.168.15.5:8085**
 | Consultar tabelas e campos do banco | [05 — Banco de dados](05-banco-de-dados.md) |
 | Consultar os endpoints da API | [06 — API](06-api.md) |
 | Instalar, atualizar, fazer backup ou resolver problemas no servidor | [07 — Operação do servidor](07-operacao-servidor.md) |
+| Login, perfis, auditoria, firewall, conta de serviço e riscos | [09 — Segurança e acesso](09-seguranca-e-acesso.md) |
 | Rodar e alterar o código | [08 — Desenvolvimento](08-desenvolvimento.md) |
 
 ## Resumo em 30 segundos
@@ -22,8 +23,9 @@ Acesso em produção (rede interna): **http://192.168.15.5:8085**
 - **Como roda:** um único processo Python (FastAPI) serve a API e a interface (React compilada) na porta **8085**, com banco **SQLite** (`backend/pcp.db`).
 - **Onde roda:** Windows Server da TI, iniciado por uma Tarefa Agendada.
 - **Dados:** ficam só no servidor. O banco **não** é versionado no git.
-- **Backup:** automático, todo dia às 23:00, em `C:\PCP-Backups` (30 dias).
-- **Documentação interativa da API:** `http://192.168.15.5:8085/docs`.
+- **Acesso:** com login (perfis `admin`, `editor`, `visualizador`) e auditoria de alterações.
+- **Backup:** automático, todo dia às 23:00, em `C:\PCP-Backups` (30 dias), com registro de sucesso/falha.
+- **Documentação interativa da API:** só em desenvolvimento; em produção fica desligada.
 
 ## Convenções deste repositório
 

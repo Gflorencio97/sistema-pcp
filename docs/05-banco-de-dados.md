@@ -74,6 +74,12 @@ Gerada a partir do roteiro; **regravada** quando a OP muda.
 Mão de obra direta por operação. Único por `operacao_codigo`.
 `setor_nome`, `quantidade_operadores` (padrão 1), `horas_dia_operador` (padrão 8,8), `observacoes`, `atualizado_em`.
 
+### `usuarios`
+`id`, `nome`, `login` (único), `senha_hash` (bcrypt), `perfil` (`admin`, `editor`, `visualizador`), `ativo`, `deve_trocar_senha`, `token_versao` (sobe ao trocar/redefinir a senha e derruba as sessões), `criado_em`, `ultimo_acesso`.
+
+### `auditoria`
+`id`, `usuario_id`, `usuario_login`, `acao` (`criar`, `editar`, `excluir`, `login`, `login_falhou`), `entidade`, `entidade_id`, `dados_antes` e `dados_depois` (JSON), `ip`, `data_hora`. Nunca guarda senha nem hash.
+
 ## Migrações automáticas
 
 Rodam na inicialização (`backend/app/main.py`) e são idempotentes. Detalhes e ordem em [Arquitetura](04-arquitetura.md#inicialização-e-migrações).

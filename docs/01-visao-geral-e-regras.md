@@ -68,5 +68,5 @@ Trabalha-se de **segunda a sexta**. Sábado e domingo não produzem.
 
 - **Produção apontada é manual.** O sistema não conta peças sozinho: o operador do sistema informa a quantidade produzida no modal da OP no Gantt. A porcentagem do Gantt e o que "falta produzir" na Carga Máquina dependem disso.
 - **O número da OP pode repetir** (mesmo número em meses diferentes ou no mesmo mês).
-- **Não há login.** O acesso é restrito à rede interna da empresa.
+- **O acesso exige login**, com perfis `admin`, `editor` e `visualizador` (veja [Segurança e acesso](09-seguranca-e-acesso.md)). O sistema só é alcançável pela rede interna.
 - **Os dados reais ficam só no servidor.** O notebook de desenvolvimento usa um banco de teste.

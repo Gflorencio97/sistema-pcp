@@ -4,6 +4,15 @@ Guia por tarefa, para quem opera o sistema. Acesso: **http://192.168.15.5:8085**
 
 > Se a página abrir com dados estranhos depois de uma atualização, pressione **Ctrl+F5**.
 
+## Entrar no sistema
+
+1. Abra o endereço e informe **login** e **senha**.
+2. No **primeiro acesso** (ou depois de uma redefinição), o sistema pede para você **trocar a senha provisória**: mínimo de 8 caracteres, com letras e números.
+3. O nome e o perfil aparecem no topo, com o botão **Sair**. A sessão dura 8 horas.
+4. **5 tentativas erradas** bloqueiam o acesso por 5 minutos.
+
+O que você vê depende do perfil: o **visualizador** só consulta (sem botões de criar, editar ou excluir); o **editor** cria e edita; só o **admin** exclui e acessa **Usuários** e **Auditoria**.
+
 ## Cadastros (fazer uma vez)
 
 ### Cadastrar um produto

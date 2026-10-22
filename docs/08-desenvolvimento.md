@@ -95,7 +95,17 @@ Regras: ser **idempotente**, nunca apagar dados sem backup, e incluir a verifica
 
 ## Testes
 
-Não há testes automatizados no projeto. A verificação feita hoje é manual:
+Há testes automatizados de segurança e de regressão do fluxo de negócio (pytest + `TestClient`, com banco temporário):
+
+```powershell
+cd backend
+pip install -r requirements-dev.txt
+cd ..
+python -m pytest backend/tests -q
+```
+Cobrem login certo e errado, bloqueio após 5 tentativas, 401 sem token, 403 por perfil, exclusão pelo admin, auditoria, troca de senha, usuários, cabeçalhos, CORS, limite de tamanho, leitura de arquivos fora do `dist`, validação de valores, `SECRET_KEY` e o modo produção.
+
+O cálculo de etapas/turnos e a Carga Máquina ainda não têm testes próprios. Além dos testes, a verificação manual continua útil:
 
 1. Subir o backend contra uma **cópia** do banco (`DATABASE_URL`).
 2. Chamar `/api/v1/health`, `/ordens/gantt`, `/ordens/sugerir-fim` e `/carga-maquina/resumo`.

@@ -21,7 +21,7 @@
 ```
 
 - **Uma porta, um processo:** a API e a interface compilada saem do mesmo servidor, na porta 8085. Não há Node.js nem proxy em produção.
-- **Sem autenticação:** protegido apenas pelo acesso à rede interna.
+- **Acesso:** login com JWT e perfis aplicados no servidor; firewall só da rede local (veja [Segurança e acesso](09-seguranca-e-acesso.md)).
 
 ## Tecnologias
 
@@ -89,6 +89,7 @@ Ao subir, `app/main.py` executa, nesta ordem e de forma idempotente:
 5. Adiciona `ordens_producao.fim_manual` (OPs em aberto → automáticas; concluídas/canceladas → manuais).
 6. Move a Linha de Lavagem para a Inspeção e renomeia a operação.
 7. Gera as etapas das OPs em aberto que ainda não as têm.
+8. Cria o usuário `admin` inicial, se o banco não tiver nenhum usuário (tabelas `usuarios` e `auditoria` nascem no `create_all`).
 
 Não há Alembic em uso: as migrações são scripts curtos no próprio `main.py`.
 

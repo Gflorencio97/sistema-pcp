@@ -1,9 +1,9 @@
 # 06 — API
 
 REST em JSON. Base: `http://192.168.15.5:8085/api/v1`.
-Documentação interativa (Swagger): `http://192.168.15.5:8085/docs`.
+Documentação interativa (Swagger): só em desenvolvimento (`/docs`); em produção fica desligada.
 
-- Sem autenticação (rede interna).
+- **Autenticação:** todas as rotas, exceto `/health` e `/auth/login`, exigem `Authorization: Bearer <token>`. Permissão por método: `GET` qualquer perfil, `POST/PUT/PATCH` editor ou admin, `DELETE` somente admin (as simulações `POST` são liberadas). Veja [Segurança e acesso](09-seguranca-e-acesso.md).
 - Datas em ISO 8601 **sem fuso** (`2026-10-15T06:09:00`).
 - Listagens aceitam `skip` e `limit` (padrão 100; o frontend pede até 1.000).
 - Os endpoints de coleção aceitam com e sem barra final (`/ordens` e `/ordens/`).
@@ -13,6 +13,29 @@ Documentação interativa (Swagger): `http://192.168.15.5:8085/docs`.
 | Método | Caminho | Resposta |
 |---|---|---|
 | GET | `/health` | `{"status": "ok"}` |
+
+## Autenticação — `/auth`
+
+| Método | Caminho | Descrição |
+|---|---|---|
+| POST | `/auth/login` | Corpo `{"login", "senha"}`. Devolve `access_token`, `expires_in` e o usuário. `401` login/senha inválidos; `429` bloqueado por excesso de tentativas. |
+| GET | `/auth/me` | Usuário logado. |
+| POST | `/auth/trocar-senha` | Corpo `{"senha_atual", "nova_senha"}`. Devolve um token novo; os antigos deixam de valer. |
+
+## Usuários — `/usuarios` (somente admin)
+
+| Método | Caminho | Descrição |
+|---|---|---|
+| GET | `/usuarios` | Lista. |
+| POST | `/usuarios` | Cria `{nome, login, perfil, senha?}`. Sem `senha`, gera uma provisória e a devolve **uma vez** em `senha_temporaria`. |
+| PATCH | `/usuarios/{id}` | Altera `nome`, `perfil` ou `ativo`. Não permite remover o próprio acesso nem o último admin. |
+| POST | `/usuarios/{id}/redefinir-senha` | Gera nova senha provisória (devolvida uma vez) e encerra as sessões da pessoa. |
+
+## Auditoria — `/auditoria` (somente admin)
+
+| Método | Caminho | Descrição |
+|---|---|---|
+| GET | `/auditoria` | Mais recentes primeiro. Filtros: `usuario_id`, `entidade`, `acao`, `data_inicio`, `data_fim`, `skip`, `limit` (máx. 500). |
 
 ## Máquinas — `/maquinas`
 
@@ -104,7 +127,11 @@ Além dos dados da OP e da linha: `etapa_id`, `etapa_seq`, `etapa_total`, `etapa
 
 | Código | Quando |
 |---|---|
-| 400 | Dado duplicado (código de produto/máquina). |
+| 400 | Dado duplicado (código de produto/máquina) ou regra de senha/usuário. |
+| 401 | Sem token, token inválido ou sessão encerrada. |
+| 403 | Perfil sem permissão, ou troca de senha pendente. |
 | 404 | Registro inexistente, ou `sugerir-fim` sem taxa no roteiro. |
 | 409 | Conflito de agenda na linha. |
+| 413 / 411 | Requisição acima de 1 MB ou sem tamanho declarado. |
+| 429 | Login bloqueado por excesso de tentativas. |
 | 422 | Validação (quantidade ≤ 0, campos obrigatórios, tamanhos). |

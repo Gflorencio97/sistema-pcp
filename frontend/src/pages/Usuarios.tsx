@@ -148,11 +148,13 @@ export default function Usuarios() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
-                      <button title="Redefinir senha" disabled={redefinir.isPending}
-                        onClick={() => { if (confirm(`Redefinir a senha de ${u.nome}? Os acessos abertos dele serão encerrados.`)) redefinir.mutate(u.id); }}
-                        className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-blue-600">
-                        <KeyRound className="h-4 w-4" />
-                      </button>
+                      {!sou_eu && (
+                        <button title="Redefinir senha" disabled={redefinir.isPending}
+                          onClick={() => { if (confirm(`Redefinir a senha de ${u.nome}? Os acessos abertos dele serão encerrados.`)) redefinir.mutate(u.id); }}
+                          className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-blue-600">
+                          <KeyRound className="h-4 w-4" />
+                        </button>
+                      )}
                       {!sou_eu && (
                         <button title={u.ativo ? 'Desativar' : 'Reativar'}
                           onClick={() => atualizar.mutate({ id: u.id, data: { ativo: !u.ativo } })}

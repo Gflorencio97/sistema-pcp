@@ -81,7 +81,17 @@ def atualizar(
 
 
 @router.post("/{usuario_id}/redefinir-senha", response_model=UsuarioComSenha)
-def redefinir_senha(usuario_id: int, db: Session = Depends(get_db)):
+def redefinir_senha(
+    usuario_id: int,
+    db: Session = Depends(get_db),
+    admin: Usuario = Depends(exigir_admin),
+):
+    if usuario_id == admin.id:
+        raise HTTPException(
+            status_code=400,
+            detail="Para trocar a sua própria senha use \"Trocar senha\" no topo da tela. "
+                   "A redefinição serve para outras pessoas.",
+        )
     u = _obter(db, usuario_id)
     senha = gerar_senha_temporaria()
     u.senha_hash = hash_senha(senha)

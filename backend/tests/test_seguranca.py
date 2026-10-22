@@ -314,3 +314,11 @@ def test_producao_desliga_docs_cors_e_ativa_csp(tmp_path):
     assert linhas.get("csp") == "True"
     assert linhas.get("frame") == "DENY"
     assert linhas.get("cors") == "False"
+
+
+def test_admin_nao_redefine_a_propria_senha_por_essa_rota(client, admin):
+    r = client.post(f"/api/v1/usuarios/{admin['id']}/redefinir-senha", headers=admin["headers"])
+    assert r.status_code == 400
+    assert "Trocar senha" in r.json()["detail"]
+    # a sessao continua valida: nada foi alterado
+    assert client.get("/api/v1/auth/me", headers=admin["headers"]).status_code == 200

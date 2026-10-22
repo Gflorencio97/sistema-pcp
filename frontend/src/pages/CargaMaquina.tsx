@@ -1,3 +1,4 @@
+import { usePermissoes } from '../hooks/usePermissoes';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -102,6 +103,7 @@ function BadgeGargalo({ tipo }: { tipo: string }) {
 }
 
 export default function CargaMaquina() {
+  const { podeEditar } = usePermissoes();
   const queryClient = useQueryClient();
   const [diasUteis, setDiasUteis] = useState<number>(22);
   const [horasDia, setHorasDia] = useState<number>(8.8);
@@ -173,6 +175,7 @@ export default function CargaMaquina() {
 
         {/* Controles de Parâmetros do Mês & Botão Ajustar Equipe */}
         <div className="flex flex-wrap items-center gap-3">
+{podeEditar && (
           <button
             onClick={abrirModalAjuste}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs border border-purple-200 shadow-xs transition"
@@ -180,6 +183,7 @@ export default function CargaMaquina() {
             <Users className="h-4 w-4" />
             <span>Ajustar Equipe (MOD)</span>
           </button>
+)}
 
           <div className="flex items-center gap-3 bg-white p-2 rounded-2xl border border-gray-100 shadow-sm">
             <div className="flex items-center gap-1.5 px-2">

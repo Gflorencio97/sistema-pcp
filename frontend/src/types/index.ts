@@ -242,3 +242,39 @@ export interface SetorMODUpdate {
 }
 
 
+
+// --- Acesso (login, usuarios e auditoria) ---
+export interface Usuario {
+  id: number;
+  nome: string;
+  login: string;
+  perfil: 'admin' | 'editor' | 'visualizador' | string;
+  ativo: boolean;
+  deve_trocar_senha: boolean;
+  criado_em?: string;
+  ultimo_acesso?: string;
+}
+
+export interface UsuarioComSenha extends Usuario {
+  senha_temporaria?: string;
+}
+
+export interface TokenResposta {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  usuario: Usuario;
+}
+
+export interface AuditoriaRegistro {
+  id: number;
+  usuario_id?: number;
+  usuario_login?: string;
+  acao: string;
+  entidade?: string;
+  entidade_id?: string;
+  dados_antes?: Record<string, unknown> | null;
+  dados_depois?: Record<string, unknown> | null;
+  ip?: string;
+  data_hora?: string;
+}

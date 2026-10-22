@@ -1,3 +1,4 @@
+import { usePermissoes } from '../hooks/usePermissoes';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Search, Pencil, Trash2, AlertTriangle, X } from 'lucide-react';
@@ -213,6 +214,7 @@ function OrdemForm({ initial, onSave, onCancel, error }: {
 }
 
 export default function Ordens() {
+  const { podeEditar, podeExcluir } = usePermissoes();
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [statusFiltro, setStatusFiltro] = useState('');
@@ -291,10 +293,12 @@ export default function Ordens() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Ordens de Produção</h1>
+{podeEditar && (
         <button onClick={() => { setModal({ open: true }); setFormError(''); }}
           className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
           <Plus className="h-4 w-4" /> Nova Ordem
         </button>
+)}
       </div>
 
       <div className="mb-4 flex items-center gap-3 rounded-xl bg-white px-4 py-2 shadow-sm border border-gray-100">
@@ -386,14 +390,18 @@ export default function Ordens() {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
+{podeEditar && (
                     <button onClick={() => { setModal({ open: true, ordem: o }); setFormError(''); }}
                       className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-blue-600">
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
+)}
+{podeExcluir && (
                     <button onClick={() => { if (confirm(`Excluir ${o.numero}?`)) deletar.mutate(o.id); }}
                       className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
+)}
                   </div>
                 </td>
               </tr>

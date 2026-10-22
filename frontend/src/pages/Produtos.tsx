@@ -1,3 +1,4 @@
+import { usePermissoes } from '../hooks/usePermissoes';
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Search, Pencil, Trash2, AlertCircle, Check, SlidersHorizontal, Settings2 } from 'lucide-react';
@@ -99,6 +100,7 @@ function ProdutoForm({ initial, onSave, onCancel }: {
 }
 
 function RoteiroModal({ produto, onClose }: { produto: Produto; onClose: () => void }) {
+  const { podeEditar } = usePermissoes();
   const qc = useQueryClient();
   const [itens, setItens] = useState<{
     operacao_codigo: string;
@@ -315,6 +317,7 @@ function RoteiroModal({ produto, onClose }: { produto: Produto; onClose: () => v
           >
             Fechar
           </button>
+{podeEditar && (
           <button
             type="button"
             onClick={() => salvarMutation.mutate()}
@@ -323,6 +326,7 @@ function RoteiroModal({ produto, onClose }: { produto: Produto; onClose: () => v
           >
             {salvarMutation.isPending ? 'Salvando...' : 'Salvar Roteiro'}
           </button>
+)}
         </div>
       </div>
     </div>
@@ -330,6 +334,7 @@ function RoteiroModal({ produto, onClose }: { produto: Produto; onClose: () => v
 }
 
 export default function Produtos() {
+  const { podeEditar, podeExcluir } = usePermissoes();
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState<{ open: boolean; produto?: Produto }>({ open: false });
@@ -377,12 +382,14 @@ export default function Produtos() {
           <h1 className="text-2xl font-bold text-gray-900">Produtos</h1>
           <p className="text-sm text-gray-500">Cadastre produtos e vincule as máquinas e taxas de produção de cada etapa</p>
         </div>
+{podeEditar && (
         <button
           onClick={() => setModal({ open: true })}
           className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
           <Plus className="h-4 w-4" /> Novo Produto
         </button>
+)}
       </div>
 
       <div className="mb-4 flex items-center gap-2 rounded-xl bg-white px-4 py-2 shadow-sm border border-gray-100">
@@ -457,6 +464,7 @@ export default function Produtos() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
+{podeEditar && (
                       <button
                         onClick={() => setModal({ open: true, produto: p })}
                         className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-blue-600"
@@ -464,6 +472,8 @@ export default function Produtos() {
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
+)}
+{podeExcluir && (
                       <button
                         onClick={() => {
                           if (confirm(`Deseja realmente excluir o produto ${p.nome}?`)) {
@@ -475,6 +485,7 @@ export default function Produtos() {
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
+)}
                     </div>
                   </td>
                 </tr>

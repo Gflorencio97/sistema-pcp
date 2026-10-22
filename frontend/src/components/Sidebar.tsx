@@ -1,7 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Factory, Settings, Package, Calendar, LayoutDashboard, Calculator, Gauge, BookOpen } from 'lucide-react';
+import { Factory, Settings, Package, Calendar, LayoutDashboard, Calculator, Gauge, BookOpen, Users, ScrollText } from 'lucide-react';
+import { useAuth } from '../auth/AuthContext';
 
-const navItems = [
+const navItems: { to: string; label: string; icon: typeof Factory; admin?: boolean }[] = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/carga-maquina', label: 'Carga Máquina', icon: Gauge },
   { to: '/programacao', label: 'Programação', icon: Calendar },
@@ -10,11 +11,14 @@ const navItems = [
   { to: '/maquinas', label: 'Máquinas', icon: Settings },
   { to: '/produtos', label: 'Produtos', icon: Package },
   { to: '/ajuda', label: 'Guia & Manual', icon: BookOpen },
+  { to: '/usuarios', label: 'Usuários', icon: Users, admin: true },
+  { to: '/auditoria', label: 'Auditoria', icon: ScrollText, admin: true },
 ];
 
 
 export default function Sidebar() {
   const { pathname } = useLocation();
+  const { ehAdmin } = useAuth();
 
   return (
     <aside className="flex h-screen w-60 shrink-0 flex-col bg-gray-900 text-white">
@@ -29,7 +33,7 @@ export default function Sidebar() {
 
       {/* Navegação */}
       <nav className="flex-1 space-y-0.5 px-3 py-4">
-        {navItems.map(({ to, label, icon: Icon }) => {
+        {navItems.filter(item => !item.admin || ehAdmin).map(({ to, label, icon: Icon }) => {
           const active = pathname === to || (to !== '/' && pathname.startsWith(to));
           return (
             <Link

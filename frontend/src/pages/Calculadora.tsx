@@ -1,3 +1,4 @@
+import { usePermissoes } from '../hooks/usePermissoes';
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -40,6 +41,7 @@ function HorasBar({ horas, total }: { horas: number; total: number }) {
 }
 
 export default function Calculadora() {
+  const { podeEditar } = usePermissoes();
   const [produtoId, setProdutoId] = useState<number>(0);
   const [quantidade, setQuantidade] = useState<number>(0);
   const [resultado, setResultado] = useState<CalculoHorasResponse | null>(null);
@@ -230,6 +232,7 @@ export default function Calculadora() {
               </p>
             </div>
 
+{podeEditar && (
             <button
               onClick={abrirModalLancar}
               className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-md hover:bg-emerald-700 transition"
@@ -237,6 +240,7 @@ export default function Calculadora() {
               <Play className="h-4 w-4 fill-white" />
               Lançar na Produção
             </button>
+)}
           </div>
 
           {/* Cards de Resumo */}

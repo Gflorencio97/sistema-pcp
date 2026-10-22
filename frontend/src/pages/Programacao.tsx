@@ -1,3 +1,4 @@
+import { usePermissoes } from '../hooks/usePermissoes';
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, addDays, startOfDay, subDays } from 'date-fns';
@@ -24,6 +25,7 @@ import GanttModalDetalhes from '../components/GanttModalDetalhes';
 import type { OrdemGantt, OrdemCreate } from '../types';
 
 export default function Programacao() {
+  const { podeEditar } = usePermissoes();
   const queryClient = useQueryClient();
 
   // Estados de navegação temporal
@@ -215,6 +217,7 @@ export default function Programacao() {
         </div>
 
         <div className="flex items-center gap-3">
+{podeEditar && (
           <button
             onClick={() => setModalNovaOrdem(true)}
             className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-all cursor-pointer"
@@ -222,6 +225,7 @@ export default function Programacao() {
             <Plus className="h-4 w-4" />
             Nova Ordem (OP)
           </button>
+)}
         </div>
       </div>
 

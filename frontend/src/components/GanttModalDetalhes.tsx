@@ -1,3 +1,4 @@
+import { usePermissoes } from '../hooks/usePermissoes';
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { differenceInCalendarDays } from 'date-fns';
@@ -29,6 +30,7 @@ const PRIORIDADE_LABELS: Record<PrioridadeOrdem, { label: string; badge: string 
 
 export default function GanttModalDetalhes({ ordem, maquinas, onClose, onSuccess }: GanttModalDetalhesProps) {
   const queryClient = useQueryClient();
+  const { podeEditar } = usePermissoes();
 
   const [maquinaId, setMaquinaId] = useState<number | undefined>(ordem?.ordem_maquina_id ?? ordem?.maquina_id);
   const [status, setStatus] = useState<StatusOrdem>(ordem?.status ?? 'planejada');
@@ -150,6 +152,7 @@ export default function GanttModalDetalhes({ ordem, maquinas, onClose, onSuccess
 
         {/* Form Body */}
         <form onSubmit={handleSalvar} className="flex-1 overflow-y-auto p-6 space-y-5">
+          <fieldset disabled={!podeEditar} className="contents">
           {erro && (
             <div className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-sm text-rose-800">
               <AlertTriangle className="h-5 w-5 shrink-0 text-rose-600 mt-0.5" />
@@ -410,6 +413,7 @@ export default function GanttModalDetalhes({ ordem, maquinas, onClose, onSuccess
               className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
+          </fieldset>
         </form>
 
         {/* Footer */}
@@ -422,6 +426,7 @@ export default function GanttModalDetalhes({ ordem, maquinas, onClose, onSuccess
             Fechar
           </button>
           
+{podeEditar && (
           <button
             type="button"
             onClick={handleSalvar}
@@ -431,6 +436,7 @@ export default function GanttModalDetalhes({ ordem, maquinas, onClose, onSuccess
             <Save className="h-4 w-4" />
             {updateMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
           </button>
+)}
         </div>
 
       </div>

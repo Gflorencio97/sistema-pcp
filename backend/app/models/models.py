@@ -165,3 +165,41 @@ class SetorMOD(Base):
     observacoes = Column(Text, nullable=True)
     atualizado_em = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
+
+
+class PerfilUsuario(str, enum.Enum):
+    ADMIN = "admin"
+    EDITOR = "editor"
+    VISUALIZADOR = "visualizador"
+
+
+class Usuario(Base):
+    """Usuario do sistema. A senha e guardada apenas como hash bcrypt."""
+    __tablename__ = "usuarios"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String(150), nullable=False)
+    login = Column(String(50), unique=True, nullable=False, index=True)
+    senha_hash = Column(String(255), nullable=False)
+    perfil = Column(String(20), nullable=False, default=PerfilUsuario.VISUALIZADOR.value)
+    ativo = Column(Boolean, nullable=False, default=True)
+    deve_trocar_senha = Column(Boolean, nullable=False, default=False)
+    token_versao = Column(Integer, nullable=False, default=0, comment="Incrementa ao trocar/redefinir a senha: invalida logins antigos")
+    criado_em = Column(DateTime, default=datetime.now)
+    ultimo_acesso = Column(DateTime, nullable=True)
+
+
+class Auditoria(Base):
+    """Registro de quem fez o que: logins, criacoes, edicoes e exclusoes."""
+    __tablename__ = "auditoria"
+
+    id = Column(Integer, primary_key=True, index=True)
+    usuario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=True, index=True)
+    usuario_login = Column(String(50), nullable=True, comment="Copia do login (tambem vale para tentativas com login inexistente)")
+    acao = Column(String(20), nullable=False, index=True, comment="criar, editar, excluir, login, login_falhou")
+    entidade = Column(String(50), nullable=True, index=True)
+    entidade_id = Column(String(50), nullable=True)
+    dados_antes = Column(Text, nullable=True, comment="JSON")
+    dados_depois = Column(Text, nullable=True, comment="JSON")
+    ip = Column(String(45), nullable=True)
+    data_hora = Column(DateTime, default=datetime.now, index=True)
